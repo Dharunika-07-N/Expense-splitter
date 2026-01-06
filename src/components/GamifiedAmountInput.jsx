@@ -57,6 +57,13 @@ export default function GamifiedAmountInput({ value, onChange, onCategorySelect,
             onChange(res);
             setCalcState({ prev: null, op: null });
             setShouldReset(true);
+        } else if (buffer) {
+            // Just confirm the current number if no operation
+            const num = parseFloat(buffer);
+            if (!isNaN(num)) {
+                onChange(num);
+                setShouldReset(true);
+            }
         }
     };
 
