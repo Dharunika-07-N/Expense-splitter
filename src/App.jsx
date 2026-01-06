@@ -4,9 +4,10 @@ import SettlementView from './components/SettlementView';
 import ExportButton from './components/ExportButton';
 import ExpenseList from './components/ExpenseList';
 import GroupSelector from './components/GroupSelector';
+import DebtCalculator from './components/DebtCalculator';
 import { storage, createFriend, createExpense, createGroup } from './utils/storage';
 import { simplifyDebts } from './utils/debtSimplifier';
-import { Trash2, Plus, ReceiptText, Users, Calculator, Sparkles, LogOut, Search, Activity, Layers } from 'lucide-react';
+import { Trash2, Plus, ReceiptText, Users, Calculator, Sparkles, LogOut, Search, Activity, Layers, Wallet } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function App() {
@@ -34,8 +35,6 @@ export default function App() {
     if (!activeGroupId) return expenses;
     const group = groups.find(g => g.id === activeGroupId);
     if (!group) return expenses;
-    // Filter expenses where payer or participants are in the group
-    // For now, simpler: track groupId in expense
     return expenses.filter(e => e.groupId === activeGroupId);
   }, [expenses, activeGroupId, groups]);
 
@@ -85,6 +84,54 @@ export default function App() {
     setExpenses(updated);
     storage.saveExpenses(updated);
     setActiveTab('summary');
+  };
+
+  const addSettlement = (settlementData) => {
+    setHistory(prev => [...prev, expenses]);
+
+    // Create a special expense for settlement
+    // Paid by the person sending, split among only the person receiving.
+    const newExpense = {
+      ...createExpense(
+        `Settlement: Direct Transfer`,
+        settlementData.amount,
+        'me', // We should let the user choose who is sending? 
+        // For now, let's assume first friend or a placeholder if 'me' is not defined.
+        [settlementData.to],
+        'Settlement',
+        'equal',
+        { [settlementData.to]: settlementData.amount }
+      ),
+      groupId: activeGroupId
+    };
+
+    // In this app, we don't have a 'me' user currently in the friends list by default.
+    // Let's just show an alert or handle it as a mockup.
+    alert(`Settlement of ₹${settlementData.amount} recorded!`);
+    setActiveTab('summary');
+  };
+
+  const markAsPaid = (settlement) => {
+    setHistory(prev => [...prev, expenses]);
+
+    // Create a settlement expense: person who owes (from) pays the person they owe (to)
+    // This creates an expense where 'from' is the payer and 'to' receives the full amount
+    const settlementExpense = {
+      ...createExpense(
+        `✓ Settled: ${friends.find(f => f.id === settlement.from)?.name} → ${friends.find(f => f.id === settlement.to)?.name}`,
+        settlement.amount,
+        settlement.from, // The debtor pays
+        [settlement.to], // The creditor receives
+        'Settlement',
+        'equal',
+        { [settlement.to]: settlement.amount }
+      ),
+      groupId: activeGroupId
+    };
+
+    const updated = [...expenses, settlementExpense];
+    setExpenses(updated);
+    storage.saveExpenses(updated);
   };
 
   const undoLast = () => {
@@ -166,7 +213,7 @@ export default function App() {
             </div>
             <p className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-1">Group Spending</p>
             <h2 className="text-8xl font-black text-slate-900 tracking-tighter mb-6 flex items-baseline">
-              <span className="text-4xl mr-2 opacity-20">$</span>{totalSpent.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              <span className="text-4xl mr-2 opacity-20">₹</span>{totalSpent.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </h2>
             <div className="flex flex-wrap justify-center md:justify-start gap-4">
               <div className="flex items-center gap-3 bg-white px-5 py-3 rounded-3xl shadow-sm border border-slate-100">
@@ -226,12 +273,30 @@ export default function App() {
                 onAddFriend={addFriend}
               />
             </motion.div>
+          ) : activeTab === 'debtCalc' ? (
+            <motion.div
+              key="debtCalc"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="bg-white rounded-[56px] p-8 md:p-16 shadow-2xl shadow-slate-200 border border-slate-100"
+            >
+              <div className="flex justify-between items-center mb-10">
+                <button
+                  onClick={() => setActiveTab('summary')}
+                  className="text-slate-400 hover:text-slate-900 font-black uppercase text-xs tracking-widest transition-colors flex items-center gap-2"
+                >
+                  ← Back to Overview
+                </button>
+              </div>
+              <DebtCalculator friends={friends} onAddSettlement={addSettlement} />
+            </motion.div>
           ) : (
             <motion.div
               key="results"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="space-y-12"
+              className="space-y-12 pb-24"
             >
               {/* Settlements Section */}
               <div ref={exportRef}>
@@ -245,20 +310,7 @@ export default function App() {
                   <ExportButton targetRef={exportRef} />
                 </div>
 
-                <SettlementView settlements={settlements} friends={friends} />
-              </div>
-
-              {/* Transactions History */}
-              <div className="bg-slate-50/50 rounded-[64px] p-8 pb-12">
-                <div className="flex items-center gap-4 mb-10 px-8">
-                  <h3 className="text-3xl font-black text-slate-900 tracking-tighter">Transaction Log</h3>
-                  <div className="h-0.5 flex-1 bg-slate-200/50"></div>
-                </div>
-                <ExpenseList
-                  expenses={filteredExpenses}
-                  friends={friends}
-                  onDelete={deleteExpense}
-                />
+                <SettlementView settlements={settlements} friends={friends} onMarkAsPaid={markAsPaid} />
               </div>
             </motion.div>
           )}
@@ -276,12 +328,12 @@ export default function App() {
           <span className="hidden sm:inline">Overview</span>
         </button>
         <button
-          onClick={() => setActiveTab('expenses')}
-          className={`px-10 py-5 rounded-full font-black text-sm uppercase tracking-widest flex items-center gap-3 transition-all ${activeTab === 'expenses' ? 'bg-slate-900 text-white shadow-xl' : 'text-slate-500 hover:bg-slate-100'
+          onClick={() => setActiveTab('debtCalc')}
+          className={`px-10 py-5 rounded-full font-black text-sm uppercase tracking-widest flex items-center gap-3 transition-all ${activeTab === 'debtCalc' ? 'bg-slate-900 text-white shadow-xl' : 'text-slate-500 hover:bg-slate-100'
             }`}
         >
-          <Activity size={20} />
-          <span className="hidden sm:inline">Activity</span>
+          <Wallet size={20} />
+          <span className="hidden sm:inline">Debt Calc</span>
         </button>
       </nav>
 

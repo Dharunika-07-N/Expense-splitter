@@ -78,7 +78,7 @@ export default function ExpenseList({ expenses, friends, onDelete }) {
                                                     <span className="w-10 h-10 bg-white/5 rounded-xl flex items-center justify-center text-xl">{getEmojiForCategory(cat)}</span>
                                                     {cat}
                                                 </span>
-                                                <span className="font-black text-blue-400 text-lg">${amt.toFixed(2)}</span>
+                                                <span className="font-black text-blue-400 text-lg">₹{amt.toFixed(2)}</span>
                                             </div>
                                             <div className="w-full bg-white/5 h-2 rounded-full overflow-hidden p-0.5">
                                                 <motion.div
@@ -144,7 +144,7 @@ export default function ExpenseList({ expenses, friends, onDelete }) {
                             <div className="flex items-center gap-6">
                                 <div className="text-right">
                                     <div className="text-3xl font-black text-slate-900 tracking-tighter font-outfit">
-                                        <span className="text-lg opacity-10 mr-1">$</span>{exp.amount.toFixed(2)}
+                                        <span className="text-lg opacity-10 mr-1">₹</span>{exp.amount.toFixed(2)}
                                     </div>
                                     <div className="text-[9px] font-black text-slate-300 uppercase tracking-widest text-right mt-1">
                                         {exp.splitAmong.length} Particpants

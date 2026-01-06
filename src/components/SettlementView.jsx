@@ -1,7 +1,7 @@
-import { ArrowRight, User, TrendingDown, CheckCircle2, DollarSign, ExternalLink } from 'lucide-react';
+import { ArrowRight, User, TrendingDown, CheckCircle2, IndianRupee, ExternalLink } from 'lucide-react';
 import { motion } from 'framer-motion';
 
-export default function SettlementView({ settlements, friends }) {
+export default function SettlementView({ settlements, friends, onMarkAsPaid }) {
     const getFriend = (id) => friends.find(f => f.id === id);
 
     if (settlements.length === 0) {
@@ -24,8 +24,17 @@ export default function SettlementView({ settlements, friends }) {
         const from = getFriend(s.from)?.name || 'Someone';
         const to = getFriend(s.to)?.name || 'Someone';
         const amount = s.amount.toFixed(2);
-        const text = `Hey ${to}! I'm sending $${amount} via NexSplit to settle our expenses. 🚀`;
+        const text = `Hey ${to}! I'm sending ₹${amount} via NexSplit to settle our expenses. 🚀`;
         window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+    };
+
+    const handleSettleNow = (settlement) => {
+        const from = getFriend(settlement.from);
+        const to = getFriend(settlement.to);
+
+        if (confirm(`Mark ₹${settlement.amount.toFixed(2)} payment from ${from?.name} to ${to?.name} as settled?`)) {
+            onMarkAsPaid?.(settlement);
+        }
     };
 
     return (
@@ -79,7 +88,7 @@ export default function SettlementView({ settlements, friends }) {
 
                         <div className="flex items-center justify-between pt-6 border-t border-slate-50">
                             <div className="text-4xl font-black text-slate-900 tracking-tighter">
-                                <span className="text-xl opacity-20 mr-1">$</span>{s.amount.toFixed(2)}
+                                <span className="text-xl opacity-20 mr-1">₹</span>{s.amount.toFixed(2)}
                             </div>
 
                             <div className="flex gap-2">
@@ -91,9 +100,10 @@ export default function SettlementView({ settlements, friends }) {
                                     <ExternalLink size={20} />
                                 </button>
                                 <button
-                                    className="px-6 py-4 bg-slate-900 text-white rounded-3xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-slate-200 hover:bg-blue-600 transition-all flex items-center gap-2"
+                                    onClick={() => handleSettleNow(s)}
+                                    className="px-6 py-4 bg-slate-900 text-white rounded-3xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-slate-200 hover:bg-emerald-600 transition-all flex items-center gap-2"
                                 >
-                                    <DollarSign size={14} /> Settle Now
+                                    <IndianRupee size={14} /> Settle Now
                                 </button>
                             </div>
                         </div>

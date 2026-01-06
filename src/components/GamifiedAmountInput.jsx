@@ -13,7 +13,7 @@ const QUICK_AMOUNTS = [
 
 const CURRENCIES = ['USD', 'EUR', 'GBP', 'INR', 'JPY', 'CAD'];
 
-export default function GamifiedAmountInput({ value, onChange, onCategorySelect, currency = 'USD', onCurrencyChange }) {
+export default function GamifiedAmountInput({ value, onChange, onCategorySelect, currency = 'INR', onCurrencyChange }) {
     const [inputMode, setInputMode] = useState('quick'); // 'quick' or 'pad'
     const [buffer, setBuffer] = useState(value > 0 ? value.toString() : '');
     const [calcState, setCalcState] = useState({ prev: null, op: null });
@@ -66,6 +66,13 @@ export default function GamifiedAmountInput({ value, onChange, onCategorySelect,
         onChange(parseFloat(newBuffer) || 0);
     };
 
+    const handleAC = () => {
+        setBuffer('');
+        onChange(0);
+        setCalcState({ prev: null, op: null });
+        setShouldReset(false);
+    };
+
     return (
         <div className="space-y-6 animate-fade-in text-slate-900">
             {/* Currency & Display */}
@@ -91,7 +98,7 @@ export default function GamifiedAmountInput({ value, onChange, onCategorySelect,
                         {calcState.op ? `${calcState.prev} ${calcState.op}` : 'Transaction Amount'}
                     </div>
                     <div className="text-7xl font-black tracking-tighter gradient-text flex items-center justify-center font-outfit">
-                        <span className="text-2xl mr-2 opacity-10 font-black">$</span>
+                        <span className="text-2xl mr-2 opacity-10 font-black">₹</span>
                         <AnimatePresence mode="wait">
                             <motion.span
                                 key={buffer}
@@ -146,7 +153,7 @@ export default function GamifiedAmountInput({ value, onChange, onCategorySelect,
                                 </div>
                                 <div>
                                     <div className="font-black text-sm leading-tight uppercase tracking-widest mb-1">{item.label}</div>
-                                    <div className="text-xs opacity-60 font-medium">Auto-split ${item.amount}</div>
+                                    <div className="text-xs opacity-60 font-medium">Auto-split ₹{item.amount}</div>
                                 </div>
                                 {parseFloat(buffer) === item.amount && (
                                     <div className="ml-auto opacity-40"><Check size={16} /></div>
@@ -195,7 +202,9 @@ export default function GamifiedAmountInput({ value, onChange, onCategorySelect,
                         <button onClick={() => handlePadInput('0')} className="h-20 col-span-2 rounded-[28px] bg-white border border-slate-100 text-3xl font-black text-slate-800 shadow-sm hover:shadow-md active:bg-slate-50 transition-all font-outfit">
                             0
                         </button>
-                        <div className="h-20"></div>
+                        <button onClick={handleAC} className="h-20 rounded-[28px] bg-slate-900 text-white text-xs font-black uppercase tracking-widest hover:bg-slate-800 transition-all">
+                            AC
+                        </button>
                     </motion.div>
                 )}
             </AnimatePresence>

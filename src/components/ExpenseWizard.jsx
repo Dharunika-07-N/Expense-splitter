@@ -359,8 +359,8 @@ export default function ExpenseWizard({ friends, onComplete, onAddFriend }) {
                                                                         key={fid}
                                                                         onClick={() => toggleItemParticipant(item.id, fid)}
                                                                         className={`px-3 py-1.5 rounded-full text-[10px] font-bold transition-all border ${isActive
-                                                                                ? 'bg-blue-600 text-white border-blue-600'
-                                                                                : 'bg-white text-slate-400 border-slate-100 hover:border-slate-300'
+                                                                            ? 'bg-blue-600 text-white border-blue-600'
+                                                                            : 'bg-white text-slate-400 border-slate-100 hover:border-slate-300'
                                                                             }`}
                                                                     >
                                                                         {friend?.name}
@@ -399,7 +399,7 @@ export default function ExpenseWizard({ friends, onComplete, onAddFriend }) {
                                                                     onChange={(e) => updateCustomSplit(fid, e.target.value, expenseData.splitMode)}
                                                                 />
                                                                 <span className="text-slate-200 font-black">
-                                                                    {expenseData.splitMode === 'percentage' ? '%' : '$'}
+                                                                    {expenseData.splitMode === 'percentage' ? '%' : '₹'}
                                                                 </span>
                                                             </div>
                                                         </div>
@@ -424,8 +424,8 @@ export default function ExpenseWizard({ friends, onComplete, onAddFriend }) {
                                                 whileTap={{ scale: 0.98 }}
                                                 onClick={() => setExpenseData({ ...expenseData, payer: f.id })}
                                                 className={`p-6 rounded-[32px] border-2 transition-all text-left relative overflow-hidden ${expenseData.payer === f.id
-                                                        ? 'border-blue-500 bg-blue-50/50 shadow-xl shadow-blue-50'
-                                                        : 'border-white bg-white hover:border-slate-100 shadow-sm'
+                                                    ? 'border-blue-500 bg-blue-50/50 shadow-xl shadow-blue-50'
+                                                    : 'border-white bg-white hover:border-slate-100 shadow-sm'
                                                     }`}
                                             >
                                                 <div className="flex items-center gap-4">
@@ -491,7 +491,7 @@ export default function ExpenseWizard({ friends, onComplete, onAddFriend }) {
                                                         {((expenseData.splits[fid] || 0) / expenseData.amount * 100).toFixed(0)}%
                                                     </span>
                                                     <span className="font-black text-slate-900 tracking-tight">
-                                                        ${(expenseData.splits[fid] || 0).toFixed(2)}
+                                                        ₹{(expenseData.splits[fid] || 0).toFixed(2)}
                                                     </span>
                                                 </div>
                                             </div>
@@ -506,7 +506,7 @@ export default function ExpenseWizard({ friends, onComplete, onAddFriend }) {
                                             </div>
                                             <div className="text-right">
                                                 <div className="text-[10px] uppercase font-bold text-white/30 tracking-[0.2em] mb-1">Final Liability</div>
-                                                <div className="text-3xl font-black font-outfit">${expenseData.amount.toFixed(2)}</div>
+                                                <div className="text-3xl font-black font-outfit">₹{expenseData.amount.toFixed(2)}</div>
                                             </div>
                                         </div>
                                     </div>
@@ -534,8 +534,8 @@ export default function ExpenseWizard({ friends, onComplete, onAddFriend }) {
                         onClick={handleNext}
                         disabled={!canProceed()}
                         className={`flex-1 py-5 rounded-3xl font-black text-[10px] uppercase tracking-widest transition-all flex items-center justify-center gap-3 shadow-xl ${canProceed()
-                                ? 'bg-blue-600 text-white hover:bg-blue-700 shadow-blue-200 translate-y-[-2px]'
-                                : 'bg-slate-100 text-slate-300 cursor-not-allowed'
+                            ? 'bg-blue-600 text-white hover:bg-blue-700 shadow-blue-200 translate-y-[-2px]'
+                            : 'bg-slate-100 text-slate-300 cursor-not-allowed'
                             }`}
                     >
                         Advance to Step {step + 1}
@@ -546,8 +546,8 @@ export default function ExpenseWizard({ friends, onComplete, onAddFriend }) {
                         onClick={handleComplete}
                         disabled={!canProceed()}
                         className={`flex-1 py-5 rounded-3xl font-black text-[10px] uppercase tracking-widest transition-all flex items-center justify-center gap-3 shadow-xl ${canProceed()
-                                ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:shadow-indigo-200 translate-y-[-2px]'
-                                : 'bg-slate-100 text-slate-300 cursor-not-allowed'
+                            ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:shadow-indigo-200 translate-y-[-2px]'
+                            : 'bg-slate-100 text-slate-300 cursor-not-allowed'
                             }`}
                     >
                         Confirm & Log Transaction
