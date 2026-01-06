@@ -8,7 +8,12 @@ export default function DebtCalculator({ friends, onAddSettlement }) {
     const [step, setStep] = useState(1);
 
     const handleNext = () => {
-        if (step === 1 && amount > 0) setStep(2);
+        const numAmount = parseFloat(amount);
+        if (step === 1 && numAmount > 0 && friends.length > 0) {
+            setStep(2);
+        } else if (friends.length === 0) {
+            alert('Please add friends first before using the debt calculator!');
+        }
     };
 
     const handleSettle = () => {
@@ -31,6 +36,12 @@ export default function DebtCalculator({ friends, onAddSettlement }) {
                 <h2 className="text-4xl font-black text-slate-900 tracking-tighter italic">Quick <span className="text-blue-600">Settle</span></h2>
                 <p className="text-sm font-bold text-slate-400 uppercase tracking-widest px-8">Calculate or record a direct payment to a friend</p>
             </div>
+
+            {friends.length === 0 && (
+                <div className="p-6 bg-amber-50 border-2 border-amber-200 rounded-3xl text-center">
+                    <p className="text-amber-800 font-black text-sm">⚠️ Please add friends first to use the debt calculator!</p>
+                </div>
+            )}
 
             <AnimatePresence mode="wait">
                 {step === 1 ? (
@@ -59,9 +70,9 @@ export default function DebtCalculator({ friends, onAddSettlement }) {
                         </div>
 
                         <button
-                            disabled={!amount || amount <= 0}
+                            disabled={!amount || parseFloat(amount) <= 0 || friends.length === 0}
                             onClick={handleNext}
-                            className={`w-full py-6 rounded-[32px] font-black text-lg uppercase tracking-widest flex items-center justify-center gap-3 transition-all ${amount > 0 ? 'bg-slate-900 text-white shadow-2xl shadow-slate-300 hover:bg-blue-600' : 'bg-slate-100 text-slate-300 cursor-not-allowed'}`}
+                            className={`w-full py-6 rounded-[32px] font-black text-lg uppercase tracking-widest flex items-center justify-center gap-3 transition-all ${parseFloat(amount) > 0 && friends.length > 0 ? 'bg-slate-900 text-white shadow-2xl shadow-slate-300 hover:bg-blue-600' : 'bg-slate-100 text-slate-300 cursor-not-allowed'}`}
                         >
                             Next: Choose Recipient <ArrowRight size={24} />
                         </button>
