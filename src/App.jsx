@@ -18,6 +18,16 @@ export default function App() {
   const [history, setHistory] = useState([]);
   const [activeTab, setActiveTab] = useState('summary');
   const exportRef = useRef();
+  const wizardRef = useRef(null);
+
+  useEffect(() => {
+    if (activeTab === 'add' && wizardRef.current) {
+      // Small timeout to ensure the element is rendered and animation started
+      setTimeout(() => {
+        wizardRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 100);
+    }
+  }, [activeTab]);
 
   useEffect(() => {
     setFriends(storage.getFriends());
@@ -253,6 +263,7 @@ export default function App() {
           {activeTab === 'add' ? (
             <motion.div
               key="add"
+              ref={wizardRef}
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
