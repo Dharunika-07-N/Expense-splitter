@@ -289,7 +289,7 @@ export default function App() {
                   ← Back to Overview
                 </button>
               </div>
-              <DebtCalculator friends={friends} onAddSettlement={addSettlement} />
+              <DebtCalculator friends={friends} onAddSettlement={addSettlement} onAddFriend={addFriend} />
             </motion.div>
           ) : (
             <motion.div

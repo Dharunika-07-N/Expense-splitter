@@ -27,7 +27,7 @@ export default function GamifiedAmountInput({ value, onChange, onCategorySelect,
     };
 
     const handlePadInput = (digit) => {
-        if (digit === '.' && buffer.includes('.')) return;
+        if (digit === '.' && !shouldReset && buffer.includes('.')) return;
 
         let newBuffer;
         if (shouldReset) {
@@ -42,7 +42,18 @@ export default function GamifiedAmountInput({ value, onChange, onCategorySelect,
     };
 
     const handleOp = (op) => {
-        if (buffer) {
+        if (calcState.prev !== null && calcState.op && !shouldReset) {
+            // Calculate pending operation before setting new one
+            const current = parseFloat(buffer);
+            let res = 0;
+            if (calcState.op === '+') res = calcState.prev + current;
+            else if (calcState.op === '-') res = calcState.prev - current; // Future proofing
+
+            setBuffer(res.toString());
+            onChange(res);
+            setCalcState({ prev: res, op });
+            setShouldReset(true);
+        } else if (buffer) {
             setCalcState({ prev: parseFloat(buffer), op });
             setShouldReset(true);
         }

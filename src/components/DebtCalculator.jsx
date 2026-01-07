@@ -1,18 +1,17 @@
 import { useState } from 'react';
 import { IndianRupee, User, ArrowRight, Sparkles, Send } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import SmartFriendSelector from './SmartFriendSelector';
 
-export default function DebtCalculator({ friends, onAddSettlement }) {
+export default function DebtCalculator({ friends, onAddSettlement, onAddFriend }) {
     const [amount, setAmount] = useState('');
     const [selectedFriend, setSelectedFriend] = useState(null);
     const [step, setStep] = useState(1);
 
     const handleNext = () => {
         const numAmount = parseFloat(amount);
-        if (step === 1 && numAmount > 0 && friends.length > 0) {
+        if (step === 1 && numAmount > 0) {
             setStep(2);
-        } else if (friends.length === 0) {
-            alert('Please add friends first before using the debt calculator!');
         }
     };
 
@@ -36,12 +35,6 @@ export default function DebtCalculator({ friends, onAddSettlement }) {
                 <h2 className="text-4xl font-black text-slate-900 tracking-tighter italic">Quick <span className="text-blue-600">Settle</span></h2>
                 <p className="text-sm font-bold text-slate-400 uppercase tracking-widest px-8">Calculate or record a direct payment to a friend</p>
             </div>
-
-            {friends.length === 0 && (
-                <div className="p-6 bg-amber-50 border-2 border-amber-200 rounded-3xl text-center">
-                    <p className="text-amber-800 font-black text-sm">⚠️ Please add friends first to use the debt calculator!</p>
-                </div>
-            )}
 
             <AnimatePresence mode="wait">
                 {step === 1 ? (
@@ -70,9 +63,9 @@ export default function DebtCalculator({ friends, onAddSettlement }) {
                         </div>
 
                         <button
-                            disabled={!amount || parseFloat(amount) <= 0 || friends.length === 0}
+                            disabled={!amount || parseFloat(amount) <= 0}
                             onClick={handleNext}
-                            className={`w-full py-6 rounded-[32px] font-black text-lg uppercase tracking-widest flex items-center justify-center gap-3 transition-all ${parseFloat(amount) > 0 && friends.length > 0 ? 'bg-slate-900 text-white shadow-2xl shadow-slate-300 hover:bg-blue-600' : 'bg-slate-100 text-slate-300 cursor-not-allowed'}`}
+                            className={`w-full py-6 rounded-[32px] font-black text-lg uppercase tracking-widest flex items-center justify-center gap-3 transition-all ${parseFloat(amount) > 0 ? 'bg-slate-900 text-white shadow-2xl shadow-slate-300 hover:bg-blue-600' : 'bg-slate-100 text-slate-300 cursor-not-allowed'}`}
                         >
                             Next: Choose Recipient <ArrowRight size={24} />
                         </button>
@@ -93,23 +86,13 @@ export default function DebtCalculator({ friends, onAddSettlement }) {
                             </div>
                         </div>
 
-                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                            {friends.map((friend) => (
-                                <button
-                                    key={friend.id}
-                                    onClick={() => setSelectedFriend(friend)}
-                                    className={`p-6 rounded-[32px] border-2 transition-all flex flex-col items-center gap-4 ${selectedFriend?.id === friend.id ? 'bg-blue-600 border-blue-600 text-white shadow-xl scale-105' : 'bg-white border-slate-100 text-slate-600 hover:border-blue-200 shadow-sm'}`}
-                                >
-                                    <div
-                                        className="w-16 h-16 rounded-2xl flex items-center justify-center font-black text-2xl shadow-inner bg-white/10"
-                                        style={{ backgroundColor: selectedFriend?.id === friend.id ? 'rgba(255,255,255,0.2)' : friend.color }}
-                                    >
-                                        {friend.name.charAt(0).toUpperCase()}
-                                    </div>
-                                    <span className="font-black text-xs uppercase tracking-widest truncate w-full text-center">{friend.name}</span>
-                                </button>
-                            ))}
-                        </div>
+                        <SmartFriendSelector
+                            friends={friends}
+                            selected={selectedFriend ? [selectedFriend.id] : []}
+                            onSelect={(id) => setSelectedFriend(friends.find(f => f.id === id))}
+                            onAddManual={onAddFriend}
+                            onAddFromContact={(name, phone) => onAddFriend(name, phone)}
+                        />
 
                         <button
                             disabled={!selectedFriend}
@@ -118,11 +101,6 @@ export default function DebtCalculator({ friends, onAddSettlement }) {
                         >
                             Record Payment <Send size={24} />
                         </button>
-
-                        <div className="flex items-center justify-center gap-2 text-slate-300">
-                            <Sparkles size={14} />
-                            <span className="text-[10px] font-black uppercase tracking-widest">Updates group balances instantly</span>
-                        </div>
                     </motion.div>
                 )}
             </AnimatePresence>
