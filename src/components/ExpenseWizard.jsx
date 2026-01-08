@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { ArrowRight, ArrowLeft, Check, Sparkles, Scale, Percent, Divide, List, Plus, Trash2, Camera, RefreshCw } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { ArrowRight, ArrowLeft, Check, Sparkles, Scale, Percent, Divide, List, Plus, Trash2, Camera, RefreshCw, Upload } from 'lucide-react';
 import SmartFriendSelector from './SmartFriendSelector';
 import GamifiedAmountInput from './GamifiedAmountInput';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -20,6 +20,7 @@ export default function ExpenseWizard({ friends, onComplete, onAddFriend }) {
 
     const [validationError, setValidationError] = useState('');
     const [isScanning, setIsScanning] = useState(false);
+    const fileInputRef = useRef(null);
 
     // Sync splits based on splitMode
     useEffect(() => {
@@ -150,20 +151,34 @@ export default function ExpenseWizard({ friends, onComplete, onAddFriend }) {
         }));
     };
 
-    const simulateOCR = () => {
+    const handleOCRClick = () => {
+        fileInputRef.current?.click();
+    };
+
+    const handleFileChange = (e) => {
+        if (e.target.files && e.target.files[0]) {
+            simulateOCR(e.target.files[0].name);
+        }
+    };
+
+    const simulateOCR = (fileName) => {
         setIsScanning(true);
+        // Simulate thinking/uploading
         setTimeout(() => {
             setIsScanning(false);
             setExpenseData(prev => ({
                 ...prev,
+                description: fileName ? `Bill: ${fileName.split('.')[0]}` : 'Scan Receipt',
                 splitMode: 'itemized',
                 items: [
-                    { id: 101, name: 'Burger', amount: 35.50, participants: [] },
-                    { id: 102, name: 'Large Fries', amount: 12.00, participants: [] },
-                    { id: 103, name: 'Coke', amount: 4.50, participants: [] }
+                    { id: 101, name: 'Burger Royale', amount: 35.50, participants: [] },
+                    { id: 102, name: 'Truffle Fries', amount: 12.00, participants: [] },
+                    { id: 103, name: 'Craft Cola', amount: 4.50, participants: [] }
                 ],
                 amount: 52.00
             }));
+            // Automatically advance to step 3 to show the items
+            setStep(3);
         }, 2000);
     };
 
@@ -242,8 +257,8 @@ export default function ExpenseWizard({ friends, onComplete, onAddFriend }) {
                         {step === 1 && (
                             <GamifiedAmountInput
                                 value={expenseData.amount}
-                                onChange={(amount) => setExpenseData({ ...expenseData, amount })}
-                                onCategorySelect={(category) => setExpenseData({ ...expenseData, category })}
+                                onChange={(amount) => setExpenseData(prev => ({ ...prev, amount }))}
+                                onCategorySelect={(category) => setExpenseData(prev => ({ ...prev, category }))}
                             />
                         )}
 
@@ -255,22 +270,29 @@ export default function ExpenseWizard({ friends, onComplete, onAddFriend }) {
                                     <input
                                         type="text"
                                         value={expenseData.description}
-                                        onChange={(e) => setExpenseData({ ...expenseData, description: e.target.value })}
+                                        onChange={(e) => setExpenseData(prev => ({ ...prev, description: e.target.value }))}
                                         placeholder="Weekend Trip..."
                                         className="w-full text-4xl font-black bg-transparent border-none text-center focus:ring-0 outline-none text-slate-900 placeholder:text-slate-200 font-outfit"
                                         autoFocus
                                     />
                                     <div className="h-1 w-1/3 mx-auto bg-slate-100 mt-6 rounded-full group-hover:w-1/2 transition-all"></div>
 
+                                    <input
+                                        type="file"
+                                        ref={fileInputRef}
+                                        onChange={handleFileChange}
+                                        accept="image/*"
+                                        className="hidden"
+                                    />
                                     <button
-                                        onClick={simulateOCR}
+                                        onClick={handleOCRClick}
                                         disabled={isScanning}
                                         className="mt-8 px-8 py-4 bg-slate-900 text-white rounded-[24px] text-[10px] font-black uppercase tracking-[0.2em] hover:bg-blue-600 transition-all flex items-center gap-3 mx-auto shadow-xl"
                                     >
                                         {isScanning ? (
                                             <> <RefreshCw size={16} className="animate-spin" /> Analyzing Receipt... </>
                                         ) : (
-                                            <> <Camera size={16} /> Scan Bill (OCR) </>
+                                            <> <Upload size={16} /> Upload & Scan Bill </>
                                         )}
                                     </button>
                                 </div>
@@ -294,10 +316,12 @@ export default function ExpenseWizard({ friends, onComplete, onAddFriend }) {
                                     friends={friends}
                                     selected={expenseData.splitAmong}
                                     onSelect={(friendId) => {
-                                        const newSplit = expenseData.splitAmong.includes(friendId)
-                                            ? expenseData.splitAmong.filter(id => id !== friendId)
-                                            : [...expenseData.splitAmong, friendId];
-                                        setExpenseData({ ...expenseData, splitAmong: newSplit });
+                                        setExpenseData(prev => {
+                                            const newSplit = prev.splitAmong.includes(friendId)
+                                                ? prev.splitAmong.filter(id => id !== friendId)
+                                                : [...prev.splitAmong, friendId];
+                                            return { ...prev, splitAmong: newSplit };
+                                        });
                                     }}
                                     onAddFriend={onAddFriend}
                                 />
@@ -422,7 +446,7 @@ export default function ExpenseWizard({ friends, onComplete, onAddFriend }) {
                                                 key={f.id}
                                                 whileHover={{ scale: 1.02 }}
                                                 whileTap={{ scale: 0.98 }}
-                                                onClick={() => setExpenseData({ ...expenseData, payer: f.id })}
+                                                onClick={() => setExpenseData(prev => ({ ...prev, payer: f.id }))}
                                                 className={`p-6 rounded-[32px] border-2 transition-all text-left relative overflow-hidden ${expenseData.payer === f.id
                                                     ? 'border-blue-500 bg-blue-50/50 shadow-xl shadow-blue-50'
                                                     : 'border-white bg-white hover:border-slate-100 shadow-sm'
