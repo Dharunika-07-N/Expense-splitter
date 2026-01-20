@@ -3,9 +3,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronLeft, Plus, ReceiptText, Wallet, BarChart3, Users, Settings, Filter, Download, ArrowUpRight, ArrowDownLeft } from 'lucide-react';
 import { useApp } from '../../../context/AppContext';
 import { Button, Card } from '../../ui/BaseUI';
-import ExpenseWizard from '../../ExpenseWizard';
-import SettlementView from '../../SettlementView';
-import ExpenseList from '../../ExpenseList';
+import ExpenseWizard from '../expenses/ExpenseWizard';
+import SettlementView from '../settlements/SettlementView';
+import ExpenseList from '../expenses/ExpenseList';
 import { simplifyDebts } from '../../../utils/debtSimplifier';
 import SettleUpWizard from '../settlements/SettleUpWizard';
 import GroupAnalytics from '../analytics/GroupAnalytics';
@@ -103,17 +103,17 @@ export default function GroupDetail({ groupId, onBack }) {
 
             {/* Quick Stats */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <Card className="md:col-span-2 bg-slate-900 text-white border-none py-8">
-                    <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-1">Total Group Spending</p>
-                    <h3 className="text-4xl font-black">₹{totalSpent.toLocaleString()}</h3>
+                <Card className="md:col-span-2 bg-slate-900 dark:bg-slate-800 text-white border-none py-8 p-8">
+                    <p className="text-slate-400 dark:text-slate-500 text-[10px] font-black uppercase tracking-widest mb-1">Total Group Spending</p>
+                    <h3 className="text-4xl font-black font-outfit">₹{totalSpent.toLocaleString()}</h3>
                 </Card>
-                <Card className="bg-white border-slate-100">
-                    <p className="text-slate-300 text-[10px] font-black uppercase tracking-widest mb-1">Balances</p>
+                <Card className="bg-white dark:bg-slate-900/50 border-slate-100 dark:border-slate-800 p-8 shadow-xl shadow-slate-200/50 dark:shadow-none">
+                    <p className="text-slate-300 dark:text-slate-700 text-[10px] font-black uppercase tracking-widest mb-1">Balances</p>
                     <h3 className="text-2xl font-black text-blue-600">{groupMembers.length} People</h3>
                 </Card>
-                <Card className="bg-white border-slate-100">
-                    <p className="text-slate-300 text-[10px] font-black uppercase tracking-widest mb-1">Settled</p>
-                    <h3 className="text-2xl font-black text-slate-400">{groupSettlements.length} Done</h3>
+                <Card className="bg-white dark:bg-slate-900/50 border-slate-100 dark:border-slate-800 p-8 shadow-xl shadow-slate-200/50 dark:shadow-none">
+                    <p className="text-slate-300 dark:text-slate-700 text-[10px] font-black uppercase tracking-widest mb-1">Settled</p>
+                    <h3 className="text-2xl font-black text-slate-400 dark:text-slate-600">{groupSettlements.length} Done</h3>
                 </Card>
             </div>
 
@@ -229,19 +229,22 @@ export default function GroupDetail({ groupId, onBack }) {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        className="fixed inset-0 z-[100] bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4"
+                        className="fixed inset-0 z-[100] bg-slate-900/60 dark:bg-black/80 backdrop-blur-md flex items-center justify-center p-4"
                         onClick={() => setIsAddingExpense(false)}
                     >
                         <motion.div
-                            initial={{ scale: 0.9, y: 20 }}
+                            initial={{ scale: 0.9, y: 40 }}
                             animate={{ scale: 1, y: 0 }}
-                            exit={{ scale: 0.9, y: 20 }}
-                            className="bg-white rounded-[40px] w-full max-w-4xl max-h-[90vh] overflow-y-auto p-8 md:p-12 shadow-2xl"
+                            exit={{ scale: 0.9, y: 40 }}
+                            className="bg-[#f8fafc] dark:bg-[#020617] rounded-[48px] w-full max-w-4xl max-h-[90vh] overflow-y-auto p-12 shadow-3xl relative border border-white/10"
                             onClick={e => e.stopPropagation()}
                         >
-                            <div className="flex justify-between items-center mb-8">
-                                <h3 className="text-2xl font-black text-slate-900">Add New Expense</h3>
-                                <Button variant="ghost" onClick={() => setIsAddingExpense(false)}>Close</Button>
+                            <div className="flex justify-between items-center mb-10">
+                                <div>
+                                    <h3 className="text-3xl font-black text-slate-900 dark:text-white tracking-tighter">Add New Expense</h3>
+                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">Populate the transaction details</p>
+                                </div>
+                                <Button variant="ghost" onClick={() => setIsAddingExpense(false)} className="rounded-full w-12 h-12 p-0 text-slate-400 hover:text-slate-900 dark:hover:text-white">✕</Button>
                             </div>
                             <ExpenseWizard
                                 friends={groupMembers}
@@ -249,6 +252,7 @@ export default function GroupDetail({ groupId, onBack }) {
                                     addExpense({ ...data, groupId });
                                     setIsAddingExpense(false);
                                 }}
+                                onAddFriend={onBack}
                             />
                         </motion.div>
                     </motion.div>
@@ -258,19 +262,22 @@ export default function GroupDetail({ groupId, onBack }) {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        className="fixed inset-0 z-[100] bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4"
+                        className="fixed inset-0 z-[100] bg-slate-900/60 dark:bg-black/80 backdrop-blur-md flex items-center justify-center p-4"
                         onClick={() => setIsSettling(false)}
                     >
                         <motion.div
-                            initial={{ scale: 0.9, y: 20 }}
+                            initial={{ scale: 0.9, y: 40 }}
                             animate={{ scale: 1, y: 0 }}
-                            exit={{ scale: 0.9, y: 20 }}
-                            className="bg-white rounded-[40px] w-full max-w-2xl p-8 md:p-12 shadow-2xl"
+                            exit={{ scale: 0.9, y: 40 }}
+                            className="bg-[#f8fafc] dark:bg-[#020617] rounded-[48px] w-full max-w-2xl p-12 shadow-3xl border border-white/10"
                             onClick={e => e.stopPropagation()}
                         >
-                            <div className="flex justify-between items-center mb-8">
-                                <h3 className="text-2xl font-black text-slate-900">Settle Up</h3>
-                                <Button variant="ghost" onClick={() => setIsSettling(false)}>Close</Button>
+                            <div className="flex justify-between items-center mb-10">
+                                <div>
+                                    <h3 className="text-3xl font-black text-slate-900 dark:text-white tracking-tighter">Record Payment</h3>
+                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">Manual settlement entry</p>
+                                </div>
+                                <Button variant="ghost" onClick={() => setIsSettling(false)} className="rounded-full w-12 h-12 p-0 text-slate-400 hover:text-slate-900 dark:hover:text-white">✕</Button>
                             </div>
                             <SettleUpWizard
                                 friends={groupMembers}

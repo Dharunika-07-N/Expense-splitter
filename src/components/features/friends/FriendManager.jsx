@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Search, User, Phone, Mail, Edit2, Trash2, ChevronRight, Filter } from 'lucide-react';
+import { Plus, Search, User, Phone, Mail, Edit2, Trash2, ChevronRight, Filter, Sparkles, UserPlus } from 'lucide-react';
 import { useApp } from '../../../context/AppContext';
 import { Button, Card, Input } from '../../ui/BaseUI';
 import { createFriend } from '../../../utils/storage';
@@ -45,68 +45,86 @@ export default function FriendManager() {
     };
 
     return (
-        <div className="space-y-8">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-                <div>
-                    <h2 className="text-4xl font-black text-slate-900 tracking-tighter">Friends</h2>
-                    <p className="text-slate-400 font-bold uppercase text-xs tracking-widest mt-1">Manage your contacts and their activity</p>
+        <div className="space-y-12">
+            {/* Header Section */}
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-8 relative">
+                <div className="absolute top-[-200%] left-[-10%] w-[30%] h-[500%] bg-blue-500/5 dark:bg-blue-500/10 blur-[120px] rounded-full pointer-events-none"></div>
+
+                <div className="relative z-10">
+                    <div className="flex items-center gap-3 mb-2">
+                        <div className="w-12 h-12 bg-blue-600 dark:bg-blue-500 rounded-2xl flex items-center justify-center shadow-xl shadow-blue-500/20">
+                            <User className="text-white" size={24} />
+                        </div>
+                        <h2 className="text-5xl font-black text-slate-900 dark:text-white tracking-tighter font-outfit">Contact Hub</h2>
+                    </div>
+                    <p className="text-slate-400 dark:text-slate-600 font-black uppercase text-[10px] tracking-[0.2em] ml-15">Manage your spending network</p>
                 </div>
-                <Button onClick={() => { setIsAdding(true); setEditingFriend(null); setFormData({ name: '', phone: '', email: '' }); }} variant="blue">
-                    <Plus size={20} />
-                    Add Friend
+
+                <Button
+                    onClick={() => { setIsAdding(true); setEditingFriend(null); setFormData({ name: '', phone: '', email: '' }); }}
+                    variant="blue"
+                    size="xl"
+                    className="rounded-[32px] shadow-2xl shadow-blue-500/30 px-10 relative z-10"
+                >
+                    <UserPlus size={20} />
+                    Onboard Friend
                 </Button>
             </div>
 
-            {/* Search & Filters */}
-            <div className="flex gap-4">
-                <div className="relative flex-1">
-                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-                    <input
-                        placeholder="Search by name or phone..."
-                        className="w-full pl-12 pr-4 py-4 bg-white rounded-2xl font-bold text-slate-900 outline-none shadow-sm border border-slate-100 focus:ring-2 focus:ring-blue-500 transition-all"
-                        value={search}
-                        onChange={(e) => setSearch(e.target.value)}
-                    />
-                </div>
+            {/* Search Hub */}
+            <div className="relative group max-w-2xl">
+                <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300 dark:text-slate-700 group-hover:text-blue-500 transition-colors" size={20} />
+                <input
+                    placeholder="Search by identity or contact detail..."
+                    className="w-full pl-16 pr-8 py-6 bg-white dark:bg-slate-900/50 rounded-[28px] font-bold text-slate-900 dark:text-white outline-none shadow-sm border border-slate-100 dark:border-slate-800/50 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500/50 transition-all font-outfit text-lg"
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                />
             </div>
 
             {/* Friends Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 <AnimatePresence>
                     {isAdding && (
                         <motion.div
-                            initial={{ opacity: 0, scale: 0.9 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            exit={{ opacity: 0, scale: 0.9 }}
+                            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.9, y: 20 }}
                             className="col-span-full"
                         >
-                            <Card className="max-w-xl mx-auto border-2 border-blue-500">
-                                <h3 className="text-xl font-black mb-6">{editingFriend ? 'Edit Friend' : 'New Friend'}</h3>
-                                <form onSubmit={handleSubmit} className="space-y-6">
+                            <Card className="max-w-2xl mx-auto p-12 bg-white dark:bg-slate-900 border-2 border-blue-500 dark:border-blue-600 shadow-3xl rounded-[48px] relative overflow-hidden">
+                                <div className="absolute top-0 right-0 p-8 opacity-5">
+                                    <Sparkles size={80} className="text-blue-500" />
+                                </div>
+                                <h3 className="text-3xl font-black text-slate-900 dark:text-white mb-10 tracking-tighter font-outfit">{editingFriend ? 'Update Identity' : 'Secure New Profile'}</h3>
+                                <form onSubmit={handleSubmit} className="space-y-8">
                                     <Input
-                                        label="Full Name"
+                                        label="Primary Name"
                                         value={formData.name}
                                         onChange={e => setFormData({ ...formData, name: e.target.value })}
-                                        placeholder="John Doe"
+                                        placeholder="Enter full name"
                                         required
+                                        className="text-lg py-5 px-6 rounded-[24px]"
                                     />
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                         <Input
-                                            label="Phone (Optional)"
+                                            label="Phone Link"
                                             value={formData.phone}
                                             onChange={e => setFormData({ ...formData, phone: e.target.value })}
-                                            placeholder="+91 9876543210"
+                                            placeholder="+91..."
+                                            className="py-5 px-6 rounded-[24px]"
                                         />
                                         <Input
-                                            label="Email (Optional)"
+                                            label="Email Sync"
                                             value={formData.email}
                                             onChange={e => setFormData({ ...formData, email: e.target.value })}
-                                            placeholder="john@example.com"
+                                            placeholder="address@domain.com"
+                                            className="py-5 px-6 rounded-[24px]"
                                         />
                                     </div>
-                                    <div className="flex gap-3 pt-4">
-                                        <Button type="submit" className="flex-1">Save Friend</Button>
-                                        <Button type="button" variant="ghost" className="flex-1" onClick={() => setIsAdding(false)}>Cancel</Button>
+                                    <div className="flex gap-4 pt-4">
+                                        <Button type="submit" size="xl" className="flex-1 rounded-[24px]">Deploy Profile</Button>
+                                        <Button type="button" variant="ghost" size="xl" className="flex-1 rounded-[24px] text-slate-400" onClick={() => setIsAdding(false)}>Abort</Button>
                                     </div>
                                 </form>
                             </Card>
@@ -114,44 +132,52 @@ export default function FriendManager() {
                     )}
                 </AnimatePresence>
 
-                {filteredFriends.map(friend => {
+                {filteredFriends.map((friend, index) => {
                     const stats = getFriendStats(friend.id);
                     return (
-                        <motion.div key={friend.id} layout>
-                            <Card className="hover:shadow-2xl transition-all group overflow-hidden">
-                                <div className="flex items-center gap-4 mb-6">
+                        <motion.div
+                            key={friend.id}
+                            layout
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0, transition: { delay: index * 0.05 } }}
+                        >
+                            <Card className="p-8 hover:shadow-3xl hover:translate-y-[-8px] transition-all group relative overflow-hidden bg-white dark:bg-slate-900/50 border-slate-100 dark:border-slate-800/50 rounded-[40px] shadow-xl shadow-slate-200/50 dark:shadow-none">
+                                <div className="flex items-center gap-5 mb-8">
                                     <div
-                                        className="w-14 h-14 rounded-2xl flex items-center justify-center text-white text-xl font-black shadow-lg"
+                                        className="w-16 h-16 rounded-[24px] flex items-center justify-center text-white text-2xl font-black shadow-2xl group-hover:rotate-6 transition-transform"
                                         style={{ backgroundColor: friend.color }}
                                     >
                                         {friend.avatar}
                                     </div>
-                                    <div className="flex-1">
-                                        <h4 className="text-xl font-black text-slate-900 truncate">{friend.name}</h4>
-                                        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">
-                                            {friend.phone || friend.email || 'No contact info'}
-                                        </p>
+                                    <div className="flex-1 min-w-0">
+                                        <h4 className="text-2xl font-black text-slate-900 dark:text-white truncate tracking-tighter font-outfit">{friend.name}</h4>
+                                        <div className="flex items-center gap-2 text-[10px] font-black text-slate-400 dark:text-slate-600 uppercase tracking-widest overflow-hidden">
+                                            {friend.phone ? <Phone size={10} /> : <Mail size={10} />}
+                                            <span className="truncate">{friend.phone || friend.email || 'Stealth Mode'}</span>
+                                        </div>
                                     </div>
-                                    <button onClick={() => startEdit(friend)} className="p-2 text-slate-300 hover:text-blue-500 transition-colors">
+                                    <button onClick={() => startEdit(friend)} className="w-10 h-10 rounded-full bg-slate-50 dark:bg-slate-800 text-slate-400 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all flex items-center justify-center">
                                         <Edit2 size={16} />
                                     </button>
                                 </div>
 
-                                <div className="grid grid-cols-2 gap-4 py-4 border-y border-slate-50">
+                                <div className="grid grid-cols-2 gap-4 py-6 border-y border-slate-50 dark:border-slate-800/50 mb-6">
                                     <div>
-                                        <p className="text-[10px] font-black text-slate-300 uppercase tracking-widest mb-1">Total Paid</p>
-                                        <p className="text-sm font-black text-slate-900">₹{stats.totalPaid.toLocaleString()}</p>
+                                        <p className="text-[9px] font-black text-slate-300 dark:text-slate-700 uppercase tracking-widest mb-1.5">Contribution</p>
+                                        <p className="text-xl font-black text-slate-900 dark:text-white font-outfit">₹{stats.totalPaid.toLocaleString()}</p>
                                     </div>
-                                    <div>
-                                        <p className="text-[10px] font-black text-slate-300 uppercase tracking-widest mb-1">Activities</p>
-                                        <p className="text-sm font-black text-slate-900 text-right">{stats.count}</p>
+                                    <div className="text-right">
+                                        <p className="text-[9px] font-black text-slate-300 dark:text-slate-700 uppercase tracking-widest mb-1.5">Ops Sync</p>
+                                        <p className="text-xl font-black text-blue-600 dark:text-blue-400 font-outfit">{stats.count}</p>
                                     </div>
                                 </div>
 
-                                <div className="mt-4 flex items-center justify-between">
-                                    <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">In {friend.groups?.length || 0} Groups</span>
-                                    <Button variant="ghost" size="sm" className="px-0 group-hover:px-4 transition-all overflow-hidden">
-                                        History <ChevronRight size={14} />
+                                <div className="flex items-center justify-between">
+                                    <div className="flex -space-x-2">
+                                        <span className="text-[9px] font-black text-slate-400 dark:text-slate-600 uppercase tracking-widest">Network Node • {friend.groups?.length || 0} Clusters</span>
+                                    </div>
+                                    <Button variant="ghost" size="sm" className="rounded-full px-4 text-slate-400 hover:text-blue-500 font-black text-[10px] uppercase tracking-widest">
+                                        Matrix View <ChevronRight size={14} className="ml-1" />
                                     </Button>
                                 </div>
                             </Card>
@@ -160,11 +186,13 @@ export default function FriendManager() {
                 })}
 
                 {friends.length === 0 && !isAdding && (
-                    <div className="col-span-full py-20 flex flex-col items-center justify-center text-center">
-                        <User size={48} className="text-slate-200 mb-4" />
-                        <h3 className="text-xl font-black text-slate-900">Your friend list is empty</h3>
-                        <p className="text-slate-400 mb-6">Add friends to start sharing expenses with them.</p>
-                        <Button variant="secondary" onClick={() => setIsAdding(true)}>Add your first friend</Button>
+                    <div className="col-span-full py-40 flex flex-col items-center justify-center text-center bg-slate-50/50 dark:bg-slate-900/20 rounded-[80px] border-4 border-dashed border-slate-100 dark:border-slate-800/50">
+                        <div className="w-24 h-24 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mb-8">
+                            <User size={48} className="text-slate-300 dark:text-slate-700" />
+                        </div>
+                        <h3 className="text-3xl font-black text-slate-900 dark:text-white mb-4 tracking-tighter">Network Protocol Empty</h3>
+                        <p className="text-slate-400 dark:text-slate-600 font-bold max-w-sm mb-10 text-sm">Synchronize your first contact to begin the distributed expense ledger protocol.</p>
+                        <Button variant="blue" size="xl" className="rounded-[32px] px-12" onClick={() => setIsAdding(true)}>Initialize Network</Button>
                     </div>
                 )}
             </div>
