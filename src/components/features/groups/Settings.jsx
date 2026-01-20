@@ -127,12 +127,17 @@ export default function Settings() {
                             </div>
                         </div>
 
-                        <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl">
+                        <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800 rounded-2xl">
                             <div className="flex items-center gap-3">
                                 <Palette size={18} className="text-slate-400" />
-                                <span className="text-sm font-bold text-slate-600">App Theme</span>
+                                <span className="text-sm font-bold text-slate-600 dark:text-slate-300">App Theme</span>
                             </div>
-                            <span className="text-xs font-black text-slate-900 bg-white px-3 py-1.5 rounded-lg shadow-sm">Light</span>
+                            <button
+                                onClick={() => updateSettings({ theme: settings.theme === 'dark' ? 'light' : 'dark' })}
+                                className="text-xs font-black text-slate-900 dark:text-white bg-white dark:bg-slate-700 px-3 py-1.5 rounded-lg shadow-sm border border-slate-100 dark:border-slate-600 transition-all active:scale-95"
+                            >
+                                {settings.theme === 'dark' ? 'Dark' : 'Light'}
+                            </button>
                         </div>
                     </div>
 

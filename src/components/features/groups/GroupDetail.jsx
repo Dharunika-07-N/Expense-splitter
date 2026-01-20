@@ -8,14 +8,19 @@ import SettlementView from '../../SettlementView';
 import ExpenseList from '../../ExpenseList';
 import { simplifyDebts } from '../../../utils/debtSimplifier';
 import SettleUpWizard from '../settlements/SettleUpWizard';
+import GroupAnalytics from '../analytics/GroupAnalytics';
+import CSVImporter from '../expenses/CSVImporter';
+import Papa from 'papaparse';
 
 export default function GroupDetail({ groupId, onBack }) {
-    const { groups, expenses, friends, addExpense, markAsPaid, deleteExpense, settlements } = useApp();
+    const { groups, expenses, friends, addExpense, addSettlement, deleteExpense, settlements } = useApp();
     const [activeTab, setActiveTab] = useState('expenses');
     const [isAddingExpense, setIsAddingExpense] = useState(false);
 
     const [isSettling, setIsSettling] = useState(false);
     const [prefilledSettlement, setPrefilledSettlement] = useState(null);
+
+    const [isImporting, setIsImporting] = useState(false);
 
     const group = groups.find(g => g.id === groupId);
     const groupExpenses = expenses.filter(e => e.groupId === groupId);
@@ -40,6 +45,28 @@ export default function GroupDetail({ groupId, onBack }) {
     const handleSettleUp = (s = null) => {
         setPrefilledSettlement(s);
         setIsSettling(true);
+    };
+
+    const handleExportCSV = () => {
+        const data = groupExpenses.map(e => ({
+            date: e.date,
+            description: e.description,
+            amount: e.amount,
+            payer: friends.find(f => f.id === e.payer)?.name || 'Unknown',
+            category: e.category
+        }));
+        const csv = Papa.unparse(data);
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${group.name}_expenses.csv`;
+        a.click();
+    };
+
+    const handleBulkImport = (newExpenses) => {
+        newExpenses.forEach(e => addExpense(e));
+        setIsImporting(false);
     };
 
     if (!group) return <div>Group not found</div>;
@@ -124,14 +151,27 @@ export default function GroupDetail({ groupId, onBack }) {
                             <div className="flex justify-between items-center mb-6">
                                 <h3 className="text-xl font-black text-slate-900">Recent Transactions</h3>
                                 <div className="flex gap-2">
-                                    <Button variant="ghost" size="sm" className="text-slate-400">
+                                    <Button variant="ghost" size="sm" className="text-slate-400" onClick={() => setIsImporting(prev => !prev)}>
                                         <Filter size={16} />
+                                        Import Bulk
                                     </Button>
-                                    <Button variant="ghost" size="sm" className="text-slate-400">
+                                    <Button variant="ghost" size="sm" className="text-slate-400" onClick={handleExportCSV}>
                                         <Download size={16} />
+                                        Export CSV
                                     </Button>
                                 </div>
                             </div>
+
+                            {isImporting && (
+                                <div className="mb-8">
+                                    <CSVImporter
+                                        friends={groupMembers}
+                                        groupId={groupId}
+                                        onImport={handleBulkImport}
+                                    />
+                                </div>
+                            )}
+
                             <ExpenseList
                                 expenses={groupExpenses}
                                 friends={friends}
@@ -171,11 +211,12 @@ export default function GroupDetail({ groupId, onBack }) {
                             initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, y: -10 }}
-                            className="bg-slate-50 rounded-[32px] p-20 flex flex-col items-center justify-center text-center"
                         >
-                            <BarChart3 size={48} className="text-slate-200 mb-4" />
-                            <h3 className="text-xl font-black text-slate-900">Analytics Dashboard</h3>
-                            <p className="text-slate-400">Coming soon in Phase 2!</p>
+                            <div className="mb-6">
+                                <h3 className="text-xl font-black text-slate-900">Group Insights</h3>
+                                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">Spending patterns and participation</p>
+                            </div>
+                            <GroupAnalytics expenses={groupExpenses} members={groupMembers} />
                         </motion.div>
                     )}
                 </AnimatePresence>
