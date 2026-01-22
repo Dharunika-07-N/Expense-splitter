@@ -1,6 +1,7 @@
-import { useState, useEffect, useCallback } from 'react';
+import { createContext, useState, useEffect, useCallback } from 'react';
 import { storage, createActivity } from '../utils/storage';
-import { AppContext } from './AppContext';
+
+export const AppContext = createContext();
 
 export const AppProvider = ({ children }) => {
     const [friends, setFriends] = useState([]);
