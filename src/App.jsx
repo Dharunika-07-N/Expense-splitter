@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { useApp } from './context/AppContext';
+import { AnimatePresence } from 'framer-motion';
+import { useApp } from './hooks/useApp';
 import Navbar from './components/layout/Navbar';
 import Dashboard from './components/features/groups/Dashboard';
 import GroupDetail from './components/features/groups/GroupDetail';

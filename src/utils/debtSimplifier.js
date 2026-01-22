@@ -10,9 +10,8 @@ export function simplifyDebts(expenses, friends) {
         if (exp.splitMode === 'unequal' || exp.splitMode === 'percentage') {
             // Use custom splits
             Object.entries(exp.splits).forEach(([id, amt]) => {
-                const friendId = parseFloat(id); // Ensure ID type matches
                 // Small check for ID matching (storage uses Date.now() + Math.random())
-                const actualId = Object.keys(balances).find(bid => bid == id);
+                const actualId = Object.keys(balances).find(bid => bid === id);
                 if (actualId) {
                     balances[actualId] -= amt;
                 }
@@ -21,7 +20,7 @@ export function simplifyDebts(expenses, friends) {
             // Default: Equal split
             const perPerson = exp.amount / exp.splitAmong.length;
             exp.splitAmong.forEach(id => {
-                if (balances.hasOwnProperty(id)) {
+                if (Object.prototype.hasOwnProperty.call(balances, id)) {
                     balances[id] -= perPerson;
                 }
             });
@@ -74,7 +73,7 @@ export function calculateBalances(expenses, friends) {
 
         if (exp.splitMode === 'unequal' || exp.splitMode === 'percentage') {
             Object.entries(exp.splits).forEach(([id, amt]) => {
-                const actualId = Object.keys(balances).find(bid => bid == id);
+                const actualId = Object.keys(balances).find(bid => bid === id);
                 if (actualId) {
                     balances[actualId] -= amt;
                 }
@@ -82,7 +81,7 @@ export function calculateBalances(expenses, friends) {
         } else {
             const perPerson = exp.amount / exp.splitAmong.length;
             exp.splitAmong.forEach(id => {
-                if (balances.hasOwnProperty(id)) {
+                if (Object.prototype.hasOwnProperty.call(balances, id)) {
                     balances[id] -= perPerson;
                 }
             });

@@ -1,6 +1,6 @@
-import React, { useRef } from 'react';
-import { Download, Upload, Trash2, ShieldAlert, Palette, Bell, Globe, ChevronRight } from 'lucide-react';
-import { useApp } from '../../../context/AppContext';
+import { useRef } from 'react';
+import { Download, Upload, Trash2, ShieldAlert, Palette, Bell, Globe } from 'lucide-react';
+import { useApp } from '../../../hooks/useApp';
 import { Button, Card } from '../../ui/BaseUI';
 import { storage } from '../../../utils/storage';
 
@@ -35,7 +35,7 @@ export default function Settings() {
                 } else {
                     alert('Failed to import data. Please check the file format.');
                 }
-            } catch (err) {
+            } catch {
                 alert('Invalid JSON file.');
             }
         };
@@ -45,18 +45,18 @@ export default function Settings() {
     return (
         <div className="space-y-8 max-w-4xl mx-auto">
             <div>
-                <h2 className="text-4xl font-black text-slate-900 tracking-tighter">Settings</h2>
+                <h2 className="text-4xl font-black text-slate-900 dark:text-white tracking-tighter">Settings</h2>
                 <p className="text-slate-400 font-bold uppercase text-xs tracking-widest mt-1">Preferences and data management</p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Data Management */}
-                <Card className="flex flex-col">
+                <Card className="flex flex-col dark:bg-slate-900 border-slate-100 dark:border-slate-800">
                     <div className="flex items-center gap-3 mb-6">
-                        <div className="p-3 bg-blue-50 text-blue-600 rounded-2xl">
+                        <div className="p-3 bg-blue-50 dark:bg-blue-900/20 text-blue-600 rounded-2xl">
                             <ShieldAlert size={20} />
                         </div>
-                        <h3 className="text-xl font-black">Data & Backup</h3>
+                        <h3 className="text-xl font-black dark:text-white">Data & Backup</h3>
                     </div>
 
                     <div className="space-y-4 flex-1">
@@ -65,11 +65,11 @@ export default function Settings() {
                         </p>
 
                         <div className="flex flex-col gap-3 pt-4">
-                            <Button variant="secondary" onClick={handleExport} className="justify-start">
+                            <Button variant="secondary" onClick={handleExport} className="justify-start dark:bg-slate-800 dark:border-slate-700 dark:text-white">
                                 <Download size={18} />
                                 Export Backup (JSON)
                             </Button>
-                            <Button variant="secondary" onClick={() => fileInputRef.current?.click()} className="justify-start">
+                            <Button variant="secondary" onClick={() => fileInputRef.current?.click()} className="justify-start dark:bg-slate-800 dark:border-slate-700 dark:text-white">
                                 <Upload size={18} />
                                 Import Backup (JSON)
                             </Button>
@@ -83,7 +83,7 @@ export default function Settings() {
                         </div>
                     </div>
 
-                    <div className="mt-8 pt-6 border-t border-slate-50">
+                    <div className="mt-8 pt-6 border-t border-slate-50 dark:border-slate-800">
                         <Button
                             variant="danger"
                             className="w-full justify-start"
@@ -100,30 +100,30 @@ export default function Settings() {
                 </Card>
 
                 {/* Preferences */}
-                <Card className="flex flex-col">
+                <Card className="flex flex-col dark:bg-slate-900 border-slate-100 dark:border-slate-800">
                     <div className="flex items-center gap-3 mb-6">
-                        <div className="p-3 bg-amber-50 text-amber-600 rounded-2xl">
+                        <div className="p-3 bg-amber-50 dark:bg-amber-900/20 text-amber-600 rounded-2xl">
                             <Palette size={20} />
                         </div>
-                        <h3 className="text-xl font-black">Preferences</h3>
+                        <h3 className="text-xl font-black dark:text-white">Preferences</h3>
                     </div>
 
                     <div className="space-y-4">
-                        <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl">
+                        <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800 rounded-2xl">
                             <div className="flex items-center gap-3">
                                 <Globe size={18} className="text-slate-400" />
-                                <span className="text-sm font-bold text-slate-600">Default Currency</span>
+                                <span className="text-sm font-bold text-slate-600 dark:text-slate-300">Default Currency</span>
                             </div>
-                            <span className="text-xs font-black text-slate-900 bg-white px-3 py-1.5 rounded-lg shadow-sm">INR (₹)</span>
+                            <span className="text-xs font-black text-slate-900 dark:text-white bg-white dark:bg-slate-700 px-3 py-1.5 rounded-lg shadow-sm">INR (₹)</span>
                         </div>
 
-                        <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl cursor-not-allowed opacity-50">
+                        <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800 rounded-2xl cursor-not-allowed opacity-50">
                             <div className="flex items-center gap-3">
                                 <Bell size={18} className="text-slate-400" />
-                                <span className="text-sm font-bold text-slate-600">Notifications</span>
+                                <span className="text-sm font-bold text-slate-600 dark:text-slate-300">Notifications</span>
                             </div>
-                            <div className="w-10 h-6 bg-slate-200 rounded-full relative">
-                                <div className="absolute left-1 top-1 w-4 h-4 bg-white rounded-full"></div>
+                            <div className="w-10 h-6 bg-slate-200 dark:bg-slate-700 rounded-full relative">
+                                <div className="absolute left-1 top-1 w-4 h-4 bg-white dark:bg-slate-400 rounded-full"></div>
                             </div>
                         </div>
 
@@ -153,7 +153,7 @@ export default function Settings() {
             </div>
 
             <div className="text-center pt-10">
-                <p className="text-[10px] font-black text-slate-300 uppercase tracking-widest">NexSplit v2.1.0 • Built with ❤️ for Group Finance</p>
+                <p className="text-[10px] font-black text-slate-300 dark:text-slate-700 uppercase tracking-widest">NexSplit v2.1.0 • Built with ❤️ for Group Finance</p>
             </div>
         </div>
     );

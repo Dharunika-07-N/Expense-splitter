@@ -1,13 +1,6 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { storage, createActivity } from '../utils/storage';
-
-const AppContext = createContext();
-
-export const useApp = () => {
-    const context = useContext(AppContext);
-    if (!context) throw new Error('useApp must be used within AppProvider');
-    return context;
-};
+import { AppContext } from './AppContext';
 
 export const AppProvider = ({ children }) => {
     const [friends, setFriends] = useState([]);
@@ -82,7 +75,6 @@ export const AppProvider = ({ children }) => {
             storage.saveGroups(updated);
             return updated;
         });
-        // Also cleanup expenses and settlements? Maybe keep them but they won't show
         setExpenses(prev => {
             const updated = prev.filter(e => e.groupId !== id);
             storage.saveExpenses(updated);

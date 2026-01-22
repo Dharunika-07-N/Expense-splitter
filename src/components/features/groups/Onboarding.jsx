@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowRight, Calculator, PieChart, Users, Wallet, Zap, Sparkles } from 'lucide-react';
-import { Button } from './ui/BaseUI';
+import { ArrowRight, Calculator, PieChart, Zap, Sparkles } from 'lucide-react';
+import { Button } from '../../ui/BaseUI';
 
 export default function Onboarding({ onComplete }) {
     const [step, setStep] = useState(0);
@@ -55,7 +55,7 @@ export default function Onboarding({ onComplete }) {
 
                     <div className="text-8xl mb-8">{currentStep.image}</div>
 
-                    <h2 className="text-4xl font-black text-slate-900 tracking-tighter mb-4">
+                    <h2 className="text-4xl font-black text-slate-900 tracking-tighter mb-4 font-outfit">
                         {currentStep.title}
                     </h2>
 
@@ -74,7 +74,7 @@ export default function Onboarding({ onComplete }) {
 
                 <Button
                     size="xl"
-                    className="w-full shadow-2xl"
+                    className="w-full shadow-2xl rounded-[32px]"
                     onClick={() => step < steps.length - 1 ? setStep(step + 1) : onComplete()}
                 >
                     {step === steps.length - 1 ? "Get Started" : "Next Discovery"}

@@ -1,9 +1,9 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { Users, Search, Plus, Contact, Check, UserPlus } from 'lucide-react';
 import { pickContacts, isContactPickerSupported } from '../../../utils/contactPicker';
 import Fuse from 'fuse.js';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Button, Input, Card } from '../../ui/BaseUI';
+import { Button } from '../../ui/BaseUI';
 
 export default function SmartFriendSelector({
     friends,
@@ -15,12 +15,9 @@ export default function SmartFriendSelector({
     const [searchTerm, setSearchTerm] = useState('');
     const [showManualAdd, setShowManualAdd] = useState(false);
     const [manualName, setManualName] = useState('');
-    const [recentNames, setRecentNames] = useState([]);
-
-    useEffect(() => {
-        const recent = JSON.parse(localStorage.getItem('recentFriends') || '[]');
-        setRecentNames(recent);
-    }, []);
+    const [recentNames, setRecentNames] = useState(() => {
+        return JSON.parse(localStorage.getItem('recentFriends') || '[]');
+    });
 
     const handleContactPick = async () => {
         const contacts = await pickContacts();
@@ -42,9 +39,11 @@ export default function SmartFriendSelector({
     };
 
     const updateRecentFriends = (names) => {
-        const updated = [...new Set([...names, ...recentNames])].slice(0, 8);
-        setRecentNames(updated);
-        localStorage.setItem('recentFriends', JSON.stringify(updated));
+        setRecentNames(prev => {
+            const updated = [...new Set([...names, ...prev])].slice(0, 8);
+            localStorage.setItem('recentFriends', JSON.stringify(updated));
+            return updated;
+        });
     };
 
     const fuse = useMemo(() => new Fuse(friends, {

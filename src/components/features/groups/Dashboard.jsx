@@ -1,12 +1,12 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Users, ReceiptText, LayoutGrid, Calendar, ArrowRight, Settings, Trash2, Archive } from 'lucide-react';
-import { useApp } from '../../../context/AppContext';
+import { Plus, Users, LayoutGrid, Calendar, ArrowRight, Trash2 } from 'lucide-react';
+import { useApp } from '../../../hooks/useApp';
 import { Button, Card } from '../../ui/BaseUI';
 import { createGroup } from '../../../utils/storage';
 
 export default function Dashboard({ onSelectGroup }) {
-    const { groups, expenses, addGroup, deleteGroup, updateGroup } = useApp();
+    const { groups, expenses, addGroup, deleteGroup } = useApp();
     const [isAdding, setIsAdding] = useState(false);
     const [newGroupName, setNewGroupName] = useState('');
     const [newGroupType, setNewGroupType] = useState('trip');
@@ -182,4 +182,3 @@ export default function Dashboard({ onSelectGroup }) {
         </div>
     );
 }
-

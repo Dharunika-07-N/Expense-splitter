@@ -22,7 +22,6 @@ export default function SettlementView({ settlements, friends, onMarkAsPaid }) {
     }
 
     const handleSettleWhatsApp = (s) => {
-        const from = getFriend(s.from)?.name || 'Someone';
         const to = getFriend(s.to)?.name || 'Someone';
         const amount = s.amount.toFixed(2);
         const text = `Hey ${to}! I'm sending ₹${amount} via NexSplit to settle our expenses. 🚀`;
@@ -91,10 +90,10 @@ export default function SettlementView({ settlements, friends, onMarkAsPaid }) {
 
                                     <div className="flex gap-3">
                                         <Button
-                                            variant="ghost"
+                                            variant="secondary"
                                             size="sm"
                                             onClick={() => handleSettleWhatsApp(s)}
-                                            className="p-4 bg-slate-50 dark:bg-slate-800 text-slate-400 hover:text-emerald-500 rounded-2xl transition-all"
+                                            className="p-4 text-slate-400 hover:text-emerald-500 rounded-2xl transition-all"
                                             title="Remind via WhatsApp"
                                         >
                                             <ExternalLink size={20} />

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, Search, User, Phone, Mail, Edit2, Trash2, ChevronRight, Filter, Sparkles, UserPlus } from 'lucide-react';
-import { useApp } from '../../../context/AppContext';
+import { useApp } from '../../../hooks/useApp';
 import { Button, Card, Input } from '../../ui/BaseUI';
 import { createFriend } from '../../../utils/storage';
 

@@ -1,12 +1,12 @@
-import React, { useState, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Filter, Hash, History, Receipt, Wallet, Trash2, Edit2, ChevronDown, Calendar, ArrowRightLeft, Sparkles, Clock } from 'lucide-react';
-import { useApp } from '../../../context/AppContext';
-import { Card, Button } from '../../ui/BaseUI';
+import { Search, Hash, History, Receipt, Wallet, Trash2, Edit2, Calendar, ArrowRightLeft, Clock } from 'lucide-react';
+import { useApp } from '../../../hooks/useApp';
+import { Card } from '../../ui/BaseUI';
 import { format } from 'date-fns';
 
 export default function ActivityHistory() {
-    const { activities, groups, friends, deleteExpense } = useApp();
+    const { activities, groups } = useApp();
     const [search, setSearch] = useState('');
     const [filterType, setFilterType] = useState('all');
 

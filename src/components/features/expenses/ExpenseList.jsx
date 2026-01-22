@@ -1,13 +1,13 @@
 import { Trash2, Calendar, User, Scale, Search, PieChart, RefreshCw } from 'lucide-react';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Card, Button, Input } from '../../ui/BaseUI';
+import { Card, Button } from '../../ui/BaseUI';
 
 export default function ExpenseList({ expenses, friends, onDelete }) {
     const [searchTerm, setSearchTerm] = useState('');
     const [showStats, setShowStats] = useState(false);
 
-    const getPayerName = (id) => friends.find(f => f.id === id)?.name || 'Unknown';
+    const getPayerName = useCallback((id) => friends.find(f => f.id === id)?.name || 'Unknown', [friends]);
 
     const filteredExpenses = useMemo(() => {
         return expenses.filter(e =>
@@ -15,7 +15,7 @@ export default function ExpenseList({ expenses, friends, onDelete }) {
             getPayerName(e.payer).toLowerCase().includes(searchTerm.toLowerCase()) ||
             (e.category && e.category.toLowerCase().includes(searchTerm.toLowerCase()))
         );
-    }, [expenses, searchTerm, friends]);
+    }, [expenses, searchTerm, getPayerName]);
 
     const categoryStats = useMemo(() => {
         const stats = {};

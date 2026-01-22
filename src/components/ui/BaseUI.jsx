@@ -1,15 +1,10 @@
 import { motion } from 'framer-motion';
-import { clsx } from 'clsx';
-import { twMerge } from 'tailwind-merge';
-
-export function cn(...inputs) {
-    return twMerge(clsx(inputs));
-}
+import { cn } from '../../utils/ui';
 
 export function Button({ className, variant = 'primary', size = 'md', children, ...props }) {
     const variants = {
         primary: 'bg-slate-900 text-white hover:bg-slate-800 shadow-lg shadow-slate-200',
-        secondary: 'bg-white text-slate-900 border border-slate-200 hover:bg-slate-50',
+        secondary: 'bg-white text-slate-900 border border-slate-200 hover:bg-slate-50 shadow-sm',
         ghost: 'bg-transparent text-slate-500 hover:bg-slate-50 hover:text-slate-900',
         danger: 'bg-rose-50 text-rose-600 hover:bg-rose-100',
         blue: 'bg-blue-600 text-white hover:bg-blue-700 shadow-lg shadow-blue-100',

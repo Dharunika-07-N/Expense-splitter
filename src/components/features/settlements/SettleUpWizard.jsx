@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowRight, Check, Wallet, Smartphone, Banknote, CreditCard, HelpCircle } from 'lucide-react';
-import { Button, Card, Input } from '../../ui/BaseUI';
+import { ArrowRight, Check, Smartphone, Banknote, CreditCard, HelpCircle } from 'lucide-react';
+import { Button, Input } from '../../ui/BaseUI';
 import { createSettlement } from '../../../utils/storage';
 
 export default function SettleUpWizard({ friends, groupId, onComplete, initialSettlement = null }) {
@@ -28,7 +28,6 @@ export default function SettleUpWizard({ friends, groupId, onComplete, initialSe
     };
 
     const fromFriend = friends.find(f => f.id === settlementData.from);
-    const toFriend = friends.find(f => f.id === settlementData.to);
 
     return (
         <div className="space-y-8">
@@ -48,7 +47,7 @@ export default function SettleUpWizard({ friends, groupId, onComplete, initialSe
                         className="space-y-6"
                     >
                         <div className="text-center mb-8">
-                            <h3 className="text-2xl font-black text-slate-900">Who is paying?</h3>
+                            <h3 className="text-2xl font-black text-slate-900 dark:text-white font-outfit">Who is paying?</h3>
                             <p className="text-slate-400 font-bold uppercase text-[10px] tracking-widest mt-1">Select the person sending money</p>
                         </div>
                         <div className="grid grid-cols-2 gap-4">
@@ -56,13 +55,13 @@ export default function SettleUpWizard({ friends, groupId, onComplete, initialSe
                                 <button
                                     key={f.id}
                                     onClick={() => { setSettlementData({ ...settlementData, from: f.id }); setStep(2); }}
-                                    className={`p-6 rounded-3xl border-2 transition-all flex flex-col items-center gap-3 ${settlementData.from === f.id ? 'border-blue-500 bg-blue-50' : 'border-slate-50 bg-white hover:border-slate-100'
+                                    className={`p-6 rounded-3xl border-2 transition-all flex flex-col items-center gap-3 ${settlementData.from === f.id ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' : 'border-slate-50 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-slate-100 dark:hover:border-slate-700'
                                         }`}
                                 >
                                     <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-white font-black text-xl" style={{ backgroundColor: f.color }}>
                                         {f.avatar}
                                     </div>
-                                    <span className="font-black text-slate-900 text-sm truncate w-full text-center">{f.name}</span>
+                                    <span className="font-black text-slate-900 dark:text-white text-sm truncate w-full text-center">{f.name}</span>
                                 </button>
                             ))}
                         </div>
@@ -78,12 +77,12 @@ export default function SettleUpWizard({ friends, groupId, onComplete, initialSe
                         className="space-y-8"
                     >
                         <div className="text-center mb-8">
-                            <h3 className="text-2xl font-black text-slate-900">Payment Details</h3>
+                            <h3 className="text-2xl font-black text-slate-900 dark:text-white font-outfit">Payment Details</h3>
                             <div className="mt-4 flex items-center justify-center gap-4">
-                                <span className="px-4 py-2 bg-slate-100 rounded-xl font-bold text-slate-600 text-xs">{fromFriend?.name}</span>
-                                <ArrowRight size={16} className="text-slate-300" />
+                                <span className="px-4 py-2 bg-slate-100 dark:bg-slate-800 rounded-xl font-bold text-slate-600 dark:text-slate-400 text-xs">{fromFriend?.name}</span>
+                                <ArrowRight size={16} className="text-slate-300 dark:text-slate-700" />
                                 <select
-                                    className="bg-blue-50 border-none rounded-xl font-bold text-blue-600 text-xs py-2 px-4 outline-none"
+                                    className="bg-blue-50 dark:bg-blue-900/20 border-none rounded-xl font-bold text-blue-600 dark:text-blue-400 text-xs py-2 px-4 outline-none appearance-none"
                                     value={settlementData.to}
                                     onChange={(e) => setSettlementData({ ...settlementData, to: e.target.value })}
                                 >
@@ -96,12 +95,12 @@ export default function SettleUpWizard({ friends, groupId, onComplete, initialSe
                         </div>
 
                         <div className="max-w-xs mx-auto">
-                            <p className="text-center text-[10px] font-black text-slate-300 uppercase tracking-[0.2em] mb-4">Amount Paid</p>
+                            <p className="text-center text-[10px] font-black text-slate-300 dark:text-slate-700 uppercase tracking-[0.2em] mb-4">Amount Paid</p>
                             <div className="relative">
-                                <span className="absolute left-6 top-1/2 -translate-y-1/2 text-4xl font-black text-slate-200">₹</span>
+                                <span className="absolute left-6 top-1/2 -translate-y-1/2 text-4xl font-black text-slate-200 dark:text-slate-800">₹</span>
                                 <input
                                     type="number"
-                                    className="w-full bg-slate-50 border-none rounded-[32px] py-10 text-center text-6xl font-black text-slate-900 outline-none focus:ring-4 focus:ring-blue-100 transition-all font-outfit"
+                                    className="w-full bg-slate-50 dark:bg-slate-900 border-none rounded-[32px] py-10 text-center text-6xl font-black text-slate-900 dark:text-white outline-none focus:ring-4 focus:ring-blue-100 dark:focus:ring-blue-900/20 transition-all font-outfit"
                                     value={settlementData.amount || ''}
                                     onChange={(e) => setSettlementData({ ...settlementData, amount: parseFloat(e.target.value) || 0 })}
                                     autoFocus
@@ -110,7 +109,7 @@ export default function SettleUpWizard({ friends, groupId, onComplete, initialSe
                         </div>
 
                         <div className="flex gap-4">
-                            <Button variant="ghost" onClick={() => setStep(1)} className="flex-1">Back</Button>
+                            <Button variant="secondary" onClick={() => setStep(1)} className="flex-1">Back</Button>
                             <Button
                                 variant="blue"
                                 className="flex-1"
@@ -133,7 +132,7 @@ export default function SettleUpWizard({ friends, groupId, onComplete, initialSe
                         className="space-y-6"
                     >
                         <div className="text-center mb-8">
-                            <h3 className="text-2xl font-black text-slate-900">How was it paid?</h3>
+                            <h3 className="text-2xl font-black text-slate-900 dark:text-white font-outfit">How was it paid?</h3>
                             <p className="text-slate-400 font-bold uppercase text-[10px] tracking-widest mt-1">Optional payment confirmation</p>
                         </div>
 
@@ -142,13 +141,13 @@ export default function SettleUpWizard({ friends, groupId, onComplete, initialSe
                                 <button
                                     key={m.id}
                                     onClick={() => setSettlementData({ ...settlementData, method: m.id })}
-                                    className={`p-5 rounded-3xl border-2 transition-all flex flex-col items-center gap-2 ${settlementData.method === m.id ? 'border-blue-500 bg-blue-50' : 'border-slate-50 bg-white hover:border-slate-100'
+                                    className={`p-5 rounded-3xl border-2 transition-all flex flex-col items-center gap-2 ${settlementData.method === m.id ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' : 'border-slate-50 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-slate-100 dark:hover:border-slate-700'
                                         }`}
                                 >
                                     <div className={`p-3 rounded-2xl ${m.bg} ${m.color}`}>
                                         <m.icon size={20} />
                                     </div>
-                                    <span className="font-bold text-slate-900 text-xs">{m.label}</span>
+                                    <span className="font-bold text-slate-900 dark:text-white text-xs">{m.label}</span>
                                 </button>
                             ))}
                         </div>
@@ -158,10 +157,11 @@ export default function SettleUpWizard({ friends, groupId, onComplete, initialSe
                             value={settlementData.notes}
                             onChange={e => setSettlementData({ ...settlementData, notes: e.target.value })}
                             placeholder="Lunch settlement..."
+                            className="bg-slate-50 dark:bg-slate-900"
                         />
 
                         <div className="flex gap-4 pt-4">
-                            <Button variant="ghost" onClick={() => setStep(2)} className="flex-1">Back</Button>
+                            <Button variant="secondary" onClick={() => setStep(2)} className="flex-1">Back</Button>
                             <Button variant="blue" className="flex-1" onClick={handleSubmit}>
                                 Confirm Payment
                                 <Check size={18} />

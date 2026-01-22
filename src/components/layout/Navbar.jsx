@@ -1,5 +1,4 @@
-import React from 'react';
-import { LayoutGrid, Users, History, Settings as SettingsIcon, Plus } from 'lucide-react';
+import { LayoutGrid, Users, History, Settings as SettingsIcon } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 export default function Navbar({ activeTab, onTabChange }) {
@@ -15,26 +14,26 @@ export default function Navbar({ activeTab, onTabChange }) {
             <motion.div
                 initial={{ y: 100 }}
                 animate={{ y: 0 }}
-                className="bg-white/80 backdrop-blur-xl rounded-[32px] p-2 flex gap-1 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.15)] border border-slate-200/50"
+                className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl rounded-[32px] p-2 flex gap-1 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.15)] border border-slate-200/50 dark:border-slate-800/50"
             >
                 {tabs.map((tab) => (
                     <button
                         key={tab.id}
                         onClick={() => onTabChange(tab.id)}
                         className={`relative px-6 py-4 rounded-2xl flex items-center gap-3 transition-all ${activeTab === tab.id
-                                ? 'text-slate-900'
-                                : 'text-slate-400 hover:text-slate-600'
+                            ? 'text-slate-900 dark:text-white'
+                            : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'
                             }`}
                     >
                         {activeTab === tab.id && (
                             <motion.div
                                 layoutId="nav-bg"
-                                className="absolute inset-0 bg-slate-900/5 rounded-2xl"
+                                className="absolute inset-0 bg-slate-900/5 dark:bg-white/5 rounded-2xl"
                                 transition={{ type: 'spring', duration: 0.5, bounce: 0.2 }}
                             />
                         )}
                         <tab.icon size={20} className={activeTab === tab.id ? 'text-blue-600' : ''} />
-                        <span className={`text-xs font-black uppercase tracking-widest hidden md:inline ${activeTab === tab.id ? 'opacity-100' : 'opacity-0'
+                        <span className={`text-xs font-black uppercase tracking-widest hidden md:inline transition-all ${activeTab === tab.id ? 'opacity-100 scale-100' : 'opacity-0 scale-90'
                             }`}>
                             {tab.label}
                         </span>

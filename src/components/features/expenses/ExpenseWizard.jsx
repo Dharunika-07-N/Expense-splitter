@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import { ArrowRight, ArrowLeft, Check, Sparkles, Scale, Percent, Divide, List, Plus, Trash2, RefreshCw, Upload } from 'lucide-react';
 import SmartFriendSelector from '../friends/SmartFriendSelector';
 import GamifiedAmountInput from './GamifiedAmountInput';
@@ -23,19 +23,19 @@ export default function ExpenseWizard({ friends, onComplete, onAddFriend }) {
     const [isScanning, setIsScanning] = useState(false);
     const fileInputRef = useRef(null);
 
-    // Sync splits based on splitMode
-    useEffect(() => {
-        if (expenseData.amount <= 0) return;
+    // Helper to calculate splits based on current state
+    const calculateSplits = useCallback((data) => {
+        if (data.amount <= 0) return {};
 
-        if (expenseData.splitMode === 'equal' && expenseData.splitAmong.length > 0) {
-            const perPerson = expenseData.amount / expenseData.splitAmong.length;
+        if (data.splitMode === 'equal' && data.splitAmong.length > 0) {
+            const perPerson = data.amount / data.splitAmong.length;
             const newSplits = {};
-            expenseData.splitAmong.forEach(id => { newSplits[id] = perPerson; });
-            setExpenseData(prev => ({ ...prev, splits: newSplits }));
-        } else if (expenseData.splitMode === 'itemized') {
+            data.splitAmong.forEach(id => { newSplits[id] = perPerson; });
+            return newSplits;
+        } else if (data.splitMode === 'itemized') {
             const newSplits = {};
-            expenseData.splitAmong.forEach(id => { newSplits[id] = 0; });
-            expenseData.items.forEach(item => {
+            data.splitAmong.forEach(id => { newSplits[id] = 0; });
+            data.items.forEach(item => {
                 if (item.participants.length > 0) {
                     const share = item.amount / item.participants.length;
                     item.participants.forEach(pid => {
@@ -43,9 +43,53 @@ export default function ExpenseWizard({ friends, onComplete, onAddFriend }) {
                     });
                 }
             });
-            setExpenseData(prev => ({ ...prev, splits: newSplits }));
+            return newSplits;
         }
-    }, [expenseData.amount, expenseData.splitAmong, expenseData.splitMode, expenseData.items]);
+        return data.splits;
+    }, []);
+
+    const updateExpenseData = useCallback((updates) => {
+        setExpenseData(prev => {
+            const newData = { ...prev, ...updates };
+            // If certain fields changed, recalculate splits if in auto-mode
+            if (updates.amount !== undefined || updates.splitAmong !== undefined || updates.splitMode !== undefined || updates.items !== undefined) {
+                if (newData.splitMode === 'equal' || newData.splitMode === 'itemized') {
+                    newData.splits = calculateSplits(newData);
+                }
+            }
+            return newData;
+        });
+    }, [calculateSplits]);
+
+    const getValidationError = useCallback(() => {
+        switch (step) {
+            case 1:
+                if (expenseData.amount <= 0) return 'Please enter an amount greater than 0.';
+                break;
+            case 2:
+                if (expenseData.description.trim() === '') return 'Please enter a description.';
+                break;
+            case 3:
+                if (expenseData.splitAmong.length === 0) return 'Please select at least one person.';
+                if (expenseData.splitMode === 'unequal') {
+                    const total = Object.values(expenseData.splits).reduce((a, b) => a + b, 0);
+                    if (Math.abs(total - expenseData.amount) > 0.05) return `Total (₹${total.toFixed(2)}) must match expense (₹${expenseData.amount.toFixed(2)}).`;
+                }
+                if (expenseData.splitMode === 'percentage') {
+                    const pctSum = Object.values(expenseData.splits).map(v => (v / expenseData.amount * 100)).reduce((a, b) => a + b, 0);
+                    if (Math.abs(pctSum - 100) > 0.5) return `Percentages must sum to 100%. Current: ${pctSum.toFixed(1)}%`;
+                }
+                if (expenseData.splitMode === 'itemized') {
+                    const itemTotal = expenseData.items.reduce((s, i) => s + i.amount, 0);
+                    if (Math.abs(itemTotal - expenseData.amount) > 0.05) return `Item total (₹${itemTotal.toFixed(2)}) must match total (₹${expenseData.amount.toFixed(2)}).`;
+                }
+                break;
+            case 4:
+                if (expenseData.payer === '') return 'Please select who paid.';
+                break;
+        }
+        return '';
+    }, [step, expenseData]);
 
     const handleNext = () => {
         const error = getValidationError();
@@ -83,54 +127,21 @@ export default function ExpenseWizard({ friends, onComplete, onAddFriend }) {
         });
     };
 
-    const getValidationError = () => {
-        switch (step) {
-            case 1:
-                if (expenseData.amount <= 0) return 'Please enter an amount greater than 0.';
-                break;
-            case 2:
-                if (expenseData.description.trim() === '') return 'Please enter a description.';
-                break;
-            case 3:
-                if (expenseData.splitAmong.length === 0) return 'Please select at least one person.';
-                if (expenseData.splitMode === 'unequal') {
-                    const total = Object.values(expenseData.splits).reduce((a, b) => a + b, 0);
-                    if (Math.abs(total - expenseData.amount) > 0.05) return `Total (₹${total.toFixed(2)}) must match expense (₹${expenseData.amount.toFixed(2)}).`;
-                }
-                if (expenseData.splitMode === 'percentage') {
-                    const pctSum = Object.values(expenseData.splits).map(v => (v / expenseData.amount * 100)).reduce((a, b) => a + b, 0);
-                    if (Math.abs(pctSum - 100) > 0.5) return `Percentages must sum to 100%. Current: ${pctSum.toFixed(1)}%`;
-                }
-                if (expenseData.splitMode === 'itemized') {
-                    const itemTotal = expenseData.items.reduce((s, i) => s + i.amount, 0);
-                    if (Math.abs(itemTotal - expenseData.amount) > 0.05) return `Item total (₹${itemTotal.toFixed(2)}) must match total (₹${expenseData.amount.toFixed(2)}).`;
-                }
-                break;
-            case 4:
-                if (expenseData.payer === '') return 'Please select who paid.';
-                break;
-        }
-        return '';
-    };
-
     const addItem = () => {
-        setExpenseData(prev => ({
-            ...prev,
-            items: [...prev.items, { id: Date.now(), name: '', amount: 0, participants: [] }]
-        }));
+        updateExpenseData({
+            items: [...expenseData.items, { id: Date.now(), name: '', amount: 0, participants: [] }]
+        });
     };
 
     const updateItem = (id, field, value) => {
-        setExpenseData(prev => ({
-            ...prev,
-            items: prev.items.map(i => i.id === id ? { ...i, [field]: value } : i)
-        }));
+        updateExpenseData({
+            items: expenseData.items.map(i => i.id === id ? { ...i, [field]: value } : i)
+        });
     };
 
     const toggleItemParticipant = (itemId, friendId) => {
-        setExpenseData(prev => ({
-            ...prev,
-            items: prev.items.map(i => {
+        updateExpenseData({
+            items: expenseData.items.map(i => {
                 if (i.id === itemId) {
                     const p = i.participants.includes(friendId)
                         ? i.participants.filter(id => id !== friendId)
@@ -139,7 +150,7 @@ export default function ExpenseWizard({ friends, onComplete, onAddFriend }) {
                 }
                 return i;
             })
-        }));
+        });
     };
 
     const handleOCRClick = () => {
@@ -151,16 +162,15 @@ export default function ExpenseWizard({ friends, onComplete, onAddFriend }) {
             setIsScanning(true);
             setTimeout(() => {
                 setIsScanning(false);
-                setExpenseData(prev => ({
-                    ...prev,
+                updateExpenseData({
                     description: `Split from Bill`,
                     splitMode: 'itemized',
                     items: [
-                        { id: 101, name: 'Main Course', amount: prev.amount * 0.6, participants: [] },
-                        { id: 102, name: 'Beverages', amount: prev.amount * 0.2, participants: [] },
-                        { id: 103, name: 'Extras', amount: prev.amount * 0.2, participants: [] }
+                        { id: 101, name: 'Main Course', amount: expenseData.amount * 0.6, participants: [] },
+                        { id: 102, name: 'Beverages', amount: expenseData.amount * 0.2, participants: [] },
+                        { id: 103, name: 'Extras', amount: expenseData.amount * 0.2, participants: [] }
                     ]
-                }));
+                });
                 setStep(3);
             }, 2000);
         }
@@ -174,7 +184,7 @@ export default function ExpenseWizard({ friends, onComplete, onAddFriend }) {
             const pct = parseFloat(value) || 0;
             newSplits[friendId] = (pct / 100) * expenseData.amount;
         }
-        setExpenseData(prev => ({ ...prev, splits: newSplits }));
+        updateExpenseData({ splits: newSplits });
     };
 
     const steps = [
@@ -239,8 +249,8 @@ export default function ExpenseWizard({ friends, onComplete, onAddFriend }) {
                         {step === 1 && (
                             <GamifiedAmountInput
                                 value={expenseData.amount}
-                                onChange={(amount) => setExpenseData(prev => ({ ...prev, amount }))}
-                                onCategorySelect={(category) => setExpenseData(prev => ({ ...prev, category }))}
+                                onChange={(amount) => updateExpenseData({ amount })}
+                                onCategorySelect={(category) => updateExpenseData({ category })}
                             />
                         )}
 
@@ -251,7 +261,7 @@ export default function ExpenseWizard({ friends, onComplete, onAddFriend }) {
                                     <input
                                         type="text"
                                         value={expenseData.description}
-                                        onChange={(e) => setExpenseData(prev => ({ ...prev, description: e.target.value }))}
+                                        onChange={(e) => updateExpenseData({ description: e.target.value })}
                                         placeholder="What's the story?"
                                         className="w-full text-4xl font-black bg-transparent border-none text-center focus:ring-0 outline-none text-slate-900 dark:text-white placeholder:text-slate-200 dark:placeholder:text-slate-800 font-outfit"
                                         autoFocus
@@ -278,12 +288,10 @@ export default function ExpenseWizard({ friends, onComplete, onAddFriend }) {
                                     friends={friends}
                                     selected={expenseData.splitAmong}
                                     onSelect={(fid) => {
-                                        setExpenseData(prev => {
-                                            const newSplit = prev.splitAmong.includes(fid)
-                                                ? prev.splitAmong.filter(id => id !== fid)
-                                                : [...prev.splitAmong, fid];
-                                            return { ...prev, splitAmong: newSplit };
-                                        });
+                                        const newSplit = expenseData.splitAmong.includes(fid)
+                                            ? expenseData.splitAmong.filter(id => id !== fid)
+                                            : [...expenseData.splitAmong, fid];
+                                        updateExpenseData({ splitAmong: newSplit });
                                     }}
                                     onAddManual={onAddFriend}
                                 />
@@ -300,7 +308,7 @@ export default function ExpenseWizard({ friends, onComplete, onAddFriend }) {
                                             ].map(mode => (
                                                 <button
                                                     key={mode.id}
-                                                    onClick={() => setExpenseData(prev => ({ ...prev, splitMode: mode.id }))}
+                                                    onClick={() => updateExpenseData({ splitMode: mode.id })}
                                                     className={`py-4 rounded-[24px] font-black text-[10px] uppercase tracking-widest flex flex-col items-center gap-2 transition-all ${expenseData.splitMode === mode.id ? 'bg-white dark:bg-slate-800 shadow-xl text-blue-600' : 'text-slate-400 dark:text-slate-600 hover:text-slate-600'}`}
                                                 >
                                                     <mode.icon size={18} />
@@ -333,7 +341,7 @@ export default function ExpenseWizard({ friends, onComplete, onAddFriend }) {
                                                             <Button
                                                                 variant="ghost"
                                                                 size="sm"
-                                                                onClick={() => setExpenseData(prev => ({ ...prev, items: prev.items.filter(i => i.id !== item.id) }))}
+                                                                onClick={() => updateExpenseData({ items: expenseData.items.filter(i => i.id !== item.id) })}
                                                                 className="text-rose-300 hover:text-rose-500"
                                                             >
                                                                 <Trash2 size={20} />
@@ -392,7 +400,7 @@ export default function ExpenseWizard({ friends, onComplete, onAddFriend }) {
                                             key={f.id}
                                             whileHover={{ scale: 1.02 }}
                                             whileTap={{ scale: 0.98 }}
-                                            onClick={() => setExpenseData(prev => ({ ...prev, payer: f.id }))}
+                                            onClick={() => updateExpenseData({ payer: f.id })}
                                             className={`p-6 rounded-[32px] border-2 transition-all text-left relative overflow-hidden ${expenseData.payer === f.id ? 'border-blue-500 bg-blue-50/50 dark:bg-blue-900/20' : 'border-white dark:border-transparent bg-white dark:bg-slate-900 shadow-sm'}`}
                                         >
                                             <div className="flex items-center gap-4">
@@ -418,7 +426,7 @@ export default function ExpenseWizard({ friends, onComplete, onAddFriend }) {
                                                 </div>
                                             </div>
                                             <button
-                                                onClick={() => setExpenseData(prev => ({ ...prev, isRecurring: !prev.isRecurring }))}
+                                                onClick={() => updateExpenseData({ isRecurring: !expenseData.isRecurring })}
                                                 className={`w-14 h-8 rounded-full relative transition-all ${expenseData.isRecurring ? 'bg-blue-500' : 'bg-white/10'}`}
                                             >
                                                 <motion.div animate={{ x: expenseData.isRecurring ? 26 : 6 }} className="w-5 h-5 bg-white rounded-full absolute top-1.5 shadow-sm" />
