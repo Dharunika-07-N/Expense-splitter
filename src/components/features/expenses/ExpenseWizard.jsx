@@ -28,20 +28,43 @@ export default function ExpenseWizard({ friends, onComplete, onAddFriend }) {
         if (data.amount <= 0) return {};
 
         if (data.splitMode === 'equal' && data.splitAmong.length > 0) {
-            const perPerson = data.amount / data.splitAmong.length;
+            const perPerson = Math.floor((data.amount / data.splitAmong.length) * 100) / 100;
             const newSplits = {};
-            data.splitAmong.forEach(id => { newSplits[id] = perPerson; });
+            let totalAssigned = 0;
+            data.splitAmong.forEach((id, index) => {
+                if (index === data.splitAmong.length - 1) {
+                    // Give the last person the remainder to be exact
+                    newSplits[id] = Math.round((data.amount - totalAssigned) * 100) / 100;
+                } else {
+                    newSplits[id] = perPerson;
+                    totalAssigned += perPerson;
+                }
+            });
             return newSplits;
         } else if (data.splitMode === 'itemized') {
             const newSplits = {};
             data.splitAmong.forEach(id => { newSplits[id] = 0; });
             data.items.forEach(item => {
                 if (item.participants.length > 0) {
-                    const share = item.amount / item.participants.length;
+                    const share = Math.round((item.amount / item.participants.length) * 100) / 100;
                     item.participants.forEach(pid => {
-                        newSplits[pid] = (newSplits[pid] || 0) + share;
+                        newSplits[pid] = Math.round(((newSplits[pid] || 0) + share) * 100) / 100;
                     });
                 }
+            });
+            return newSplits;
+        } else if (data.splitMode === 'percentage') {
+            // Percentages are stored directly in splits[id]
+            const newSplits = {};
+            data.splitAmong.forEach(id => {
+                const pct = data.splits[id] || 0;
+                newSplits[id] = Math.round((data.amount * pct / 100) * 100) / 100;
+            });
+            return newSplits;
+        } else if (data.splitMode === 'unequal') {
+            const newSplits = {};
+            data.splitAmong.forEach(id => {
+                newSplits[id] = Math.round((data.splits[id] || 0) * 100) / 100;
             });
             return newSplits;
         }
@@ -76,8 +99,8 @@ export default function ExpenseWizard({ friends, onComplete, onAddFriend }) {
                     if (Math.abs(total - expenseData.amount) > 0.05) return `Total (₹${total.toFixed(2)}) must match expense (₹${expenseData.amount.toFixed(2)}).`;
                 }
                 if (expenseData.splitMode === 'percentage') {
-                    const pctSum = Object.values(expenseData.splits).map(v => (v / expenseData.amount * 100)).reduce((a, b) => a + b, 0);
-                    if (Math.abs(pctSum - 100) > 0.5) return `Percentages must sum to 100%. Current: ${pctSum.toFixed(1)}%`;
+                    const pctSum = Object.values(expenseData.splits).reduce((a, b) => a + b, 0);
+                    if (Math.abs(pctSum - 100) > 0.01) return `Percentages must sum to 100%. Current: ${pctSum.toFixed(1)}%`;
                 }
                 if (expenseData.splitMode === 'itemized') {
                     const itemTotal = expenseData.items.reduce((s, i) => s + i.amount, 0);
@@ -176,14 +199,9 @@ export default function ExpenseWizard({ friends, onComplete, onAddFriend }) {
         }
     };
 
-    const updateCustomSplit = (friendId, value, mode) => {
+    const updateCustomSplit = (friendId, value) => {
         const newSplits = { ...expenseData.splits };
-        if (mode === 'unequal') {
-            newSplits[friendId] = parseFloat(value) || 0;
-        } else if (mode === 'percentage') {
-            const pct = parseFloat(value) || 0;
-            newSplits[friendId] = (pct / 100) * expenseData.amount;
-        }
+        newSplits[friendId] = parseFloat(value) || 0;
         updateExpenseData({ splits: newSplits });
     };
 
@@ -376,10 +394,10 @@ export default function ExpenseWizard({ friends, onComplete, onAddFriend }) {
                                                                 type="number"
                                                                 className="w-28 text-right px-4 py-3 bg-slate-50 dark:bg-slate-800 border-none rounded-2xl font-black text-blue-600 focus:ring-2 focus:ring-blue-500/20"
                                                                 value={expenseData.splitMode === 'percentage'
-                                                                    ? (((expenseData.splits[fid] || 0) / expenseData.amount) * 100).toFixed(0)
-                                                                    : (expenseData.splits[fid] || '').toString()
+                                                                    ? (expenseData.splits[fid] ?? 0).toString()
+                                                                    : (expenseData.splits[fid] ?? '').toString()
                                                                 }
-                                                                onChange={(e) => updateCustomSplit(fid, e.target.value, expenseData.splitMode)}
+                                                                onChange={(e) => updateCustomSplit(fid, e.target.value)}
                                                             />
                                                             <span className="font-black text-slate-200 dark:text-slate-800">{expenseData.splitMode === 'percentage' ? '%' : '₹'}</span>
                                                         </div>
