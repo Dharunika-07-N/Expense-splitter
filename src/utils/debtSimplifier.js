@@ -1,21 +1,34 @@
-export function simplifyDebts(expenses, friends) {
+export function calculateBalances(expenses, friends, settlements = [], initialContributions = {}) {
     const balances = {};
     friends.forEach(f => balances[f.id] = 0);
 
+    // 1. Start with initial contributions (e.g., group joining fee)
+    Object.entries(initialContributions).forEach(([id, amount]) => {
+        if (Object.prototype.hasOwnProperty.call(balances, id)) {
+            balances[id] += (parseFloat(amount) || 0);
+        }
+    });
+
+    // 2. Add expenses
     expenses.forEach(exp => {
         if (!exp.splitAmong || exp.splitAmong.length === 0) return;
 
-        // Add payer's amount
+        // The person who paid gets credit
         if (Object.prototype.hasOwnProperty.call(balances, exp.payer)) {
             balances[exp.payer] += exp.amount;
         }
 
-        // Handle splits
+        // Subtract what each person owes
         if (exp.splitMode === 'unequal' || exp.splitMode === 'percentage') {
             Object.entries(exp.splits).forEach(([id, amt]) => {
-                // Use strict ID matching
                 if (Object.prototype.hasOwnProperty.call(balances, id)) {
-                    balances[id] -= amt;
+                    if (exp.splitMode === 'percentage') {
+                        // amt is a percentage value (0-100)
+                        balances[id] -= (exp.amount * amt / 100);
+                    } else {
+                        // amt is a literal currency value
+                        balances[id] -= amt;
+                    }
                 }
             });
         } else {
@@ -29,68 +42,61 @@ export function simplifyDebts(expenses, friends) {
         }
     });
 
+    // 3. Adjust for manual settlements (payments)
+    settlements.forEach(settle => {
+        if (Object.prototype.hasOwnProperty.call(balances, settle.from)) {
+            balances[settle.from] += settle.amount; // They paid, so they are "owed" more back (or owe less)
+        }
+        if (Object.prototype.hasOwnProperty.call(balances, settle.to)) {
+            balances[settle.to] -= settle.amount; // They received, so they "owe" more (or are owed less)
+        }
+    });
+
+    // Final rounding to avoid IEEE 754 precision issues
+    Object.keys(balances).forEach(id => {
+        balances[id] = Math.round(balances[id] * 100) / 100;
+    });
+
+    return balances;
+}
+
+export function simplifyDebts(expenses, friends, settlements = [], initialContributions = {}) {
+    const balances = calculateBalances(expenses, friends, settlements, initialContributions);
+
     const creditors = [];
     const debtors = [];
 
     Object.entries(balances).forEach(([id, balance]) => {
-        // Round to 2 decimals for accuracy
-        const rounded = Math.round(balance * 100) / 100;
-        if (rounded > 0.01) creditors.push({ id, amount: rounded });
-        if (rounded < -0.01) debtors.push({ id, amount: -rounded });
+        if (balance > 0.01) creditors.push({ id, amount: balance });
+        else if (balance < -0.01) debtors.push({ id, amount: -balance });
     });
 
+    // Sort to minimize number of transfers
     creditors.sort((a, b) => b.amount - a.amount);
     debtors.sort((a, b) => b.amount - a.amount);
 
-    const settlements = [];
+    const result = [];
     let i = 0, j = 0;
 
+    // Use a while loop to match debtors with creditors
     while (i < creditors.length && j < debtors.length) {
         const credit = creditors[i].amount;
         const debt = debtors[j].amount;
         const settled = Math.min(credit, debt);
 
-        settlements.push({
+        result.push({
             from: debtors[j].id,
             to: creditors[i].id,
             amount: Math.round(settled * 100) / 100
         });
 
-        creditors[i].amount -= settled;
-        debtors[j].amount -= settled;
+        creditors[i].amount = Math.round((creditors[i].amount - settled) * 100) / 100;
+        debtors[j].amount = Math.round((debtors[j].amount - settled) * 100) / 100;
 
         if (creditors[i].amount < 0.01) i++;
         if (debtors[j].amount < 0.01) j++;
     }
 
-    return settlements;
+    return result;
 }
 
-export function calculateBalances(expenses, friends) {
-    const balances = {};
-    friends.forEach(f => balances[f.id] = 0);
-
-    expenses.forEach(exp => {
-        if (!exp.splitAmong || exp.splitAmong.length === 0) return;
-
-        balances[exp.payer] += exp.amount;
-
-        if (exp.splitMode === 'unequal' || exp.splitMode === 'percentage') {
-            Object.entries(exp.splits).forEach(([id, amt]) => {
-                const actualId = Object.keys(balances).find(bid => bid === id);
-                if (actualId) {
-                    balances[actualId] -= amt;
-                }
-            });
-        } else {
-            const perPerson = exp.amount / exp.splitAmong.length;
-            exp.splitAmong.forEach(id => {
-                if (Object.prototype.hasOwnProperty.call(balances, id)) {
-                    balances[id] -= perPerson;
-                }
-            });
-        }
-    });
-
-    return balances;
-}
