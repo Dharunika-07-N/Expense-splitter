@@ -27,7 +27,7 @@ export default function GroupDetail({ groupId, onBack }) {
     const [joinAmount, setJoinAmount] = useState('');
 
     const group = groups.find(g => g.id === groupId);
-    const contributedAmounts = group?.contributedAmounts || {};
+    const contributedAmounts = useMemo(() => group?.contributedAmounts || {}, [group?.contributedAmounts]);
     const groupExpenses = expenses.filter(e => e.groupId === groupId);
     const groupSettlements = settlements.filter(s => s.groupId === groupId);
 
@@ -41,10 +41,12 @@ export default function GroupDetail({ groupId, onBack }) {
 
     const suggestedSettlements = useMemo(() => {
         if (groupMembers.length > 0 && groupExpenses.length > 0) {
-            return simplifyDebts(groupExpenses, groupMembers);
+            return simplifyDebts(groupExpenses, groupMembers, groupSettlements, contributedAmounts);
         }
         return [];
-    }, [groupMembers, groupExpenses]);
+    }, [groupMembers, groupExpenses, groupSettlements, contributedAmounts]);
+
+
 
 
 
@@ -106,7 +108,6 @@ export default function GroupDetail({ groupId, onBack }) {
                             variant="primary"
                             disabled={!joinName || !joinAmount}
                             onClick={() => {
-                                // eslint-disable-next-line react-hooks/purity
                                 const newId = Date.now().toString() + Math.random();
                                 addFriend({ id: newId, name: joinName.trim() });
                                 updateGroup(groupId, {
