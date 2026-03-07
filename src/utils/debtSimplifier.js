@@ -5,15 +5,17 @@ export function simplifyDebts(expenses, friends) {
     expenses.forEach(exp => {
         if (!exp.splitAmong || exp.splitAmong.length === 0) return;
 
-        balances[exp.payer] += exp.amount;
+        // Add payer's amount
+        if (Object.prototype.hasOwnProperty.call(balances, exp.payer)) {
+            balances[exp.payer] += exp.amount;
+        }
 
+        // Handle splits
         if (exp.splitMode === 'unequal' || exp.splitMode === 'percentage') {
-            // Use custom splits
             Object.entries(exp.splits).forEach(([id, amt]) => {
-                // Small check for ID matching (storage uses Date.now() + Math.random())
-                const actualId = Object.keys(balances).find(bid => bid === id);
-                if (actualId) {
-                    balances[actualId] -= amt;
+                // Use strict ID matching
+                if (Object.prototype.hasOwnProperty.call(balances, id)) {
+                    balances[id] -= amt;
                 }
             });
         } else {
@@ -31,8 +33,10 @@ export function simplifyDebts(expenses, friends) {
     const debtors = [];
 
     Object.entries(balances).forEach(([id, balance]) => {
-        if (balance > 0.01) creditors.push({ id, amount: balance });
-        if (balance < -0.01) debtors.push({ id, amount: -balance });
+        // Round to 2 decimals for accuracy
+        const rounded = Math.round(balance * 100) / 100;
+        if (rounded > 0.01) creditors.push({ id, amount: rounded });
+        if (rounded < -0.01) debtors.push({ id, amount: -rounded });
     });
 
     creditors.sort((a, b) => b.amount - a.amount);
@@ -49,7 +53,7 @@ export function simplifyDebts(expenses, friends) {
         settlements.push({
             from: debtors[j].id,
             to: creditors[i].id,
-            amount: settled
+            amount: Math.round(settled * 100) / 100
         });
 
         creditors[i].amount -= settled;
