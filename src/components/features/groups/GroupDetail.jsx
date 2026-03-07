@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import QRCodeDisplay from './QRCode';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronLeft, Plus, ReceiptText, Wallet, BarChart3, Users, Filter, Download } from 'lucide-react';
 import { useApp } from '../../../hooks/useApp';
@@ -13,20 +14,26 @@ import CSVImporter from '../expenses/CSVImporter';
 import Papa from 'papaparse';
 
 export default function GroupDetail({ groupId, onBack }) {
-    const { groups, expenses, friends, addExpense, addSettlement, deleteExpense, settlements } = useApp();
+    const { groups, expenses, friends, addExpense, addFriend, addSettlement, deleteExpense, settlements, updateGroup } = useApp();
+
     const [activeTab, setActiveTab] = useState('expenses');
     const [isAddingExpense, setIsAddingExpense] = useState(false);
-
     const [isSettling, setIsSettling] = useState(false);
     const [prefilledSettlement, setPrefilledSettlement] = useState(null);
-
     const [isImporting, setIsImporting] = useState(false);
+    const [isAddingMember, setIsAddingMember] = useState(false);
+    const [selectedMemberId, setSelectedMemberId] = useState('');
+    const [joinName, setJoinName] = useState('');
+    const [joinAmount, setJoinAmount] = useState('');
 
     const group = groups.find(g => g.id === groupId);
+    const contributedAmounts = group?.contributedAmounts || {};
     const groupExpenses = expenses.filter(e => e.groupId === groupId);
     const groupSettlements = settlements.filter(s => s.groupId === groupId);
 
     const groupMembers = friends.filter(f => group?.memberIds.includes(f.id));
+    const availableFriends = friends.filter(f => !group?.memberIds.includes(f.id));
+
 
     const totalSpent = useMemo(() => {
         return groupExpenses.reduce((sum, e) => sum + e.amount, 0);
@@ -38,6 +45,8 @@ export default function GroupDetail({ groupId, onBack }) {
         }
         return [];
     }, [groupMembers, groupExpenses]);
+
+
 
     const handleSettleUp = (s = null) => {
         setPrefilledSettlement(s);
@@ -70,6 +79,142 @@ export default function GroupDetail({ groupId, onBack }) {
 
     return (
         <div className="space-y-8">
+            {/* QR Code for group joining */}
+            <Card className="p-6 dark:bg-slate-900 border-slate-100 dark:border-slate-800">
+                <h3 className="text-xl font-black dark:text-white mb-4">Join via QR Code</h3>
+                <QRCodeDisplay value={groupId} />
+
+                {/* QR Join Form */}
+                <div className="mt-4">
+                    <h4 className="font-bold mb-2 dark:text-white">New Member? Join Now</h4>
+                    <div className="flex flex-col gap-3">
+                        <input
+                            type="text"
+                            placeholder="Your Name"
+                            value={joinName}
+                            onChange={e => setJoinName(e.target.value)}
+                            className="border px-3 py-2 rounded-lg dark:bg-slate-800 dark:border-slate-700 dark:text-white"
+                        />
+                        <input
+                            type="number"
+                            placeholder="Amount You're Contributing (₹)"
+                            value={joinAmount}
+                            onChange={e => setJoinAmount(e.target.value)}
+                            className="border px-3 py-2 rounded-lg dark:bg-slate-800 dark:border-slate-700 dark:text-white"
+                        />
+                        <Button
+                            variant="primary"
+                            disabled={!joinName || !joinAmount}
+                            onClick={() => {
+                                // eslint-disable-next-line react-hooks/purity
+                                const newId = Date.now().toString() + Math.random();
+                                addFriend({ id: newId, name: joinName.trim() });
+                                updateGroup(groupId, {
+                                    memberIds: [...group.memberIds, newId],
+                                    contributedAmounts: {
+                                        ...contributedAmounts,
+                                        [newId]: parseFloat(joinAmount)
+                                    }
+                                });
+                                setJoinName('');
+                                setJoinAmount('');
+                            }}
+                        >
+                            Join Group
+                        </Button>
+                    </div>
+                </div>
+            </Card>
+
+            {/* Members Section */}
+            <Card className="p-6 dark:bg-slate-900 border-slate-100 dark:border-slate-800">
+                <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-2">
+                        <Users size={20} className="text-slate-400" />
+                        <h3 className="text-xl font-black dark:text-white">Members ({groupMembers.length})</h3>
+                    </div>
+                    <Button variant="primary" size="sm" onClick={() => setIsAddingMember(true)}>
+                        <Plus size={16} /> Add Existing Friend
+                    </Button>
+                </div>
+
+                <div className="flex flex-wrap gap-2">
+                    {groupMembers.map(m => (
+                        <span key={m.id} className="px-3 py-1.5 bg-slate-100 dark:bg-slate-800 rounded-lg dark:text-white">{m.name}</span>
+                    ))}
+                </div>
+
+                {isAddingMember && availableFriends.length > 0 && (
+                    <div className="mt-4 flex gap-2">
+                        <select
+                            value={selectedMemberId}
+                            onChange={e => setSelectedMemberId(e.target.value)}
+                            className="flex-1 border px-3 py-2 rounded-lg dark:bg-slate-800 dark:border-slate-700 dark:text-white"
+                        >
+                            <option value="">Select a friend</option>
+                            {availableFriends.map(f => (
+                                <option key={f.id} value={f.id}>{f.name}</option>
+                            ))}
+                        </select>
+                        <Button
+                            variant="secondary"
+                            size="sm"
+                            disabled={!selectedMemberId}
+                            onClick={() => {
+                                if (selectedMemberId) {
+                                    updateGroup(groupId, { memberIds: [...group.memberIds, selectedMemberId] });
+                                    setIsAddingMember(false);
+                                    setSelectedMemberId('');
+                                }
+                            }}
+                        >Add</Button>
+                        <Button variant="danger" size="sm" onClick={() => setIsAddingMember(false)}>Cancel</Button>
+                    </div>
+                )}
+            </Card>
+
+            {/* Total Expense Input */}
+            {groupMembers.length > 0 && (
+                <Card className="p-6 dark:bg-slate-900 border-slate-100 dark:border-slate-800">
+                    <h3 className="text-xl font-black dark:text-white mb-4">Total Expense</h3>
+                    <div className="flex gap-2 items-center">
+                        <span className="text-2xl font-bold dark:text-white">₹</span>
+                        <input
+                            type="number"
+                            placeholder="Enter total expense amount"
+                            value={group.totalExpense || ''}
+                            onChange={e => updateGroup(groupId, { totalExpense: parseFloat(e.target.value) || 0 })}
+                            className="flex-1 border px-4 py-3 rounded-lg text-xl dark:bg-slate-800 dark:border-slate-700 dark:text-white"
+                        />
+                    </div>
+                </Card>
+            )}
+
+            {/* Payment Breakdown */}
+            {group.totalExpense && groupMembers.length > 0 && (
+                <Card className="p-6 dark:bg-slate-900 border-slate-100 dark:border-slate-800">
+                    <h3 className="text-xl font-black dark:text-white mb-4">💰 Payment Breakdown</h3>
+                    <div className="space-y-3">
+                        {groupMembers.map(m => {
+                            const contributed = contributedAmounts[m.id] || 0;
+                            const share = group.totalExpense / groupMembers.length;
+                            const diff = Math.round((contributed - share) * 100) / 100;
+                            return (
+                                <div key={m.id} className="p-4 bg-slate-50 dark:bg-slate-800 rounded-lg">
+                                    <div className="font-bold dark:text-white mb-2">{m.name}</div>
+                                    <div className="text-sm space-y-1">
+                                        <div className="dark:text-slate-300">Contributed: <span className="font-semibold">₹{contributed.toFixed(2)}</span></div>
+                                        <div className="dark:text-slate-300">Fair Share: <span className="font-semibold">₹{share.toFixed(2)}</span></div>
+                                        <div className={`font-bold ${diff > 0 ? 'text-green-600 dark:text-green-400' : diff < 0 ? 'text-red-600 dark:text-red-400' : 'text-slate-600 dark:text-slate-400'}`}>
+                                            {diff > 0 ? `✅ Paid Extra: ₹${diff.toFixed(2)}` : diff < 0 ? `⚠️ Owes: ₹${(-diff).toFixed(2)}` : '✓ Settled'}
+                                        </div>
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                </Card>
+            )}
             {/* Header */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
                 <div className="flex items-center gap-4">
