@@ -96,15 +96,27 @@ export default function ExpenseWizard({ friends, onComplete, onAddFriend }) {
                 if (expenseData.splitAmong.length === 0) return 'Please select at least one person.';
                 if (expenseData.splitMode === 'unequal') {
                     const total = Object.values(expenseData.splits).reduce((a, b) => a + b, 0);
-                    if (Math.abs(total - expenseData.amount) > 0.05) return `Total (₹${total.toFixed(2)}) must match expense (₹${expenseData.amount.toFixed(2)}).`;
+                    if (total > expenseData.amount + 0.05) {
+                        return 'the total amount of all the person is lot more than the expense and somone who gives less must find out and that amount must be solved with that person';
+                    } else if (Math.abs(total - expenseData.amount) > 0.05) {
+                        return `Total (₹${total.toFixed(2)}) must match expense (₹${expenseData.amount.toFixed(2)}).`;
+                    }
                 }
                 if (expenseData.splitMode === 'percentage') {
                     const pctSum = Object.values(expenseData.splits).reduce((a, b) => a + b, 0);
-                    if (Math.abs(pctSum - 100) > 0.01) return `Percentages must sum to 100%. Current: ${pctSum.toFixed(1)}%`;
+                    if (pctSum > 100.01) {
+                        return 'the total amount of all the person is lot more than the expense and somone who gives less must find out and that amount must be solved with that person';
+                    } else if (Math.abs(pctSum - 100) > 0.01) {
+                        return `Percentages must sum to 100%. Current: ${pctSum.toFixed(1)}%`;
+                    }
                 }
                 if (expenseData.splitMode === 'itemized') {
                     const itemTotal = expenseData.items.reduce((s, i) => s + i.amount, 0);
-                    if (Math.abs(itemTotal - expenseData.amount) > 0.05) return `Item total (₹${itemTotal.toFixed(2)}) must match total (₹${expenseData.amount.toFixed(2)}).`;
+                    if (itemTotal > expenseData.amount + 0.05) {
+                        return 'the total amount of all the person is lot more than the expense and somone who gives less must find out and that amount must be solved with that person';
+                    } else if (Math.abs(itemTotal - expenseData.amount) > 0.05) {
+                        return `Item total (₹${itemTotal.toFixed(2)}) must match total (₹${expenseData.amount.toFixed(2)}).`;
+                    }
                 }
                 break;
             case 4:
