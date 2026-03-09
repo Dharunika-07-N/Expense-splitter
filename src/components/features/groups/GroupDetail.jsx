@@ -141,7 +141,19 @@ export default function GroupDetail({ groupId, onBack }) {
 
                 <div className="flex flex-wrap gap-2">
                     {groupMembers.map(m => (
-                        <span key={m.id} className="px-3 py-1.5 bg-slate-100 dark:bg-slate-800 rounded-lg dark:text-white">{m.name}</span>
+                        <div key={m.id} className="flex items-center gap-1 px-3 py-1.5 bg-slate-100 dark:bg-slate-800 rounded-lg">
+                            <span className="dark:text-white">{m.name}</span>
+                            <button
+                                onClick={() => {
+                                    updateGroup(groupId, {
+                                        memberIds: group.memberIds.filter(id => id !== m.id)
+                                    });
+                                }}
+                                className="ml-2 text-slate-400 hover:text-red-500"
+                            >
+                                ✕
+                            </button>
+                        </div>
                     ))}
                 </div>
 
@@ -203,8 +215,27 @@ export default function GroupDetail({ groupId, onBack }) {
                             return (
                                 <div key={m.id} className="p-4 bg-slate-50 dark:bg-slate-800 rounded-lg">
                                     <div className="font-bold dark:text-white mb-2">{m.name}</div>
-                                    <div className="text-sm space-y-1">
-                                        <div className="dark:text-slate-300">Contributed: <span className="font-semibold">₹{contributed.toFixed(2)}</span></div>
+                                    <div className="text-sm space-y-3 mt-2">
+                                        <div className="dark:text-slate-300 flex flex-wrap items-center gap-2">
+                                            <span>Contributed:</span>
+                                            <div className="flex bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg items-center px-2 py-0.5">
+                                                <span className="font-bold text-slate-500">₹</span>
+                                                <input
+                                                    type="number"
+                                                    value={contributed || ''}
+                                                    placeholder="0"
+                                                    onChange={e => {
+                                                        updateGroup(groupId, {
+                                                            contributedAmounts: {
+                                                                ...contributedAmounts,
+                                                                [m.id]: parseFloat(e.target.value) || 0
+                                                            }
+                                                        });
+                                                    }}
+                                                    className="w-24 bg-transparent border-none focus:ring-0 text-sm font-bold dark:text-white"
+                                                />
+                                            </div>
+                                        </div>
                                         <div className="dark:text-slate-300">Fair Share: <span className="font-semibold">₹{share.toFixed(2)}</span></div>
                                         <div className={`font-bold ${diff > 0 ? 'text-green-600 dark:text-green-400' : diff < 0 ? 'text-red-600 dark:text-red-400' : 'text-slate-600 dark:text-slate-400'}`}>
                                             {diff > 0 ? `✅ Paid Extra: ₹${diff.toFixed(2)}` : diff < 0 ? `⚠️ Owes: ₹${(-diff).toFixed(2)}` : '✓ Settled'}
