@@ -54,11 +54,10 @@ export default function ExpenseWizard({ friends, onComplete, onAddFriend }) {
             });
             return newSplits;
         } else if (data.splitMode === 'percentage') {
-            // Percentages are stored directly in splits[id]
+            // Store raw percentages — debtSimplifier does the conversion
             const newSplits = {};
             data.splitAmong.forEach(id => {
-                const pct = data.splits[id] || 0;
-                newSplits[id] = Math.round((data.amount * pct / 100) * 100) / 100;
+                newSplits[id] = data.splits[id] || 0;
             });
             return newSplits;
         } else if (data.splitMode === 'unequal') {
@@ -97,7 +96,7 @@ export default function ExpenseWizard({ friends, onComplete, onAddFriend }) {
                 if (expenseData.splitMode === 'unequal') {
                     const total = Object.values(expenseData.splits).reduce((a, b) => a + b, 0);
                     if (total > expenseData.amount + 0.05) {
-                        return 'the total amount of all the person is lot more than the expense and somone who gives less must find out and that amount must be solved with that person';
+                        return `Split total (₹${total.toFixed(2)}) exceeds expense amount (₹${expenseData.amount.toFixed(2)}). Please reduce the amounts.`;
                     } else if (Math.abs(total - expenseData.amount) > 0.05) {
                         return `Total (₹${total.toFixed(2)}) must match expense (₹${expenseData.amount.toFixed(2)}).`;
                     }
@@ -105,7 +104,7 @@ export default function ExpenseWizard({ friends, onComplete, onAddFriend }) {
                 if (expenseData.splitMode === 'percentage') {
                     const pctSum = Object.values(expenseData.splits).reduce((a, b) => a + b, 0);
                     if (pctSum > 100.01) {
-                        return 'the total amount of all the person is lot more than the expense and somone who gives less must find out and that amount must be solved with that person';
+                        return `Percentages sum to ${pctSum.toFixed(1)}% — they must not exceed 100%.`;
                     } else if (Math.abs(pctSum - 100) > 0.01) {
                         return `Percentages must sum to 100%. Current: ${pctSum.toFixed(1)}%`;
                     }
@@ -113,7 +112,7 @@ export default function ExpenseWizard({ friends, onComplete, onAddFriend }) {
                 if (expenseData.splitMode === 'itemized') {
                     const itemTotal = expenseData.items.reduce((s, i) => s + i.amount, 0);
                     if (itemTotal > expenseData.amount + 0.05) {
-                        return 'the total amount of all the person is lot more than the expense and somone who gives less must find out and that amount must be solved with that person';
+                        return `Item total (₹${itemTotal.toFixed(2)}) exceeds expense amount (₹${expenseData.amount.toFixed(2)}).`;
                     } else if (Math.abs(itemTotal - expenseData.amount) > 0.05) {
                         return `Item total (₹${itemTotal.toFixed(2)}) must match total (₹${expenseData.amount.toFixed(2)}).`;
                     }
@@ -464,12 +463,19 @@ export default function ExpenseWizard({ friends, onComplete, onAddFriend }) {
                                         </div>
 
                                         <div className="pt-8 border-t border-white/5 space-y-4">
-                                            {expenseData.splitAmong.map(fid => (
-                                                <div key={fid} className="flex justify-between items-center px-2">
-                                                    <span className="text-white/40 font-black uppercase text-[10px] tracking-widest">{friends.find(f => f.id === fid)?.name}</span>
-                                                    <span className="font-black text-lg tracking-tight font-outfit">₹{(expenseData.splits[fid] || 0).toLocaleString()}</span>
-                                                </div>
-                                            ))}
+                                            {expenseData.splitAmong.map(fid => {
+                                                // For percentage mode, splits[fid] is a raw %, convert for display
+                                                const rawVal = expenseData.splits[fid] || 0;
+                                                const displayAmount = expenseData.splitMode === 'percentage'
+                                                    ? Math.round((expenseData.amount * rawVal / 100) * 100) / 100
+                                                    : rawVal;
+                                                return (
+                                                    <div key={fid} className="flex justify-between items-center px-2">
+                                                        <span className="text-white/40 font-black uppercase text-[10px] tracking-widest">{friends.find(f => f.id === fid)?.name}</span>
+                                                        <span className="font-black text-lg tracking-tight font-outfit">₹{displayAmount.toLocaleString()}</span>
+                                                    </div>
+                                                );
+                                            })}
                                         </div>
                                     </div>
                                     <div className="bg-gradient-to-r from-blue-600 to-indigo-700 p-8 flex justify-between items-center rounded-b-[38px]">
