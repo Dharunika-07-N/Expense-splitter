@@ -19,16 +19,18 @@ export function calculateBalances(expenses, friends, settlements = [], initialCo
         }
 
         // Subtract what each person owes
-        if (exp.splitMode === 'unequal' || exp.splitMode === 'percentage') {
+        if (exp.splitMode === 'unequal' || exp.splitMode === 'itemized') {
+            // splits[id] holds a direct currency amount
             Object.entries(exp.splits).forEach(([id, amt]) => {
                 if (Object.prototype.hasOwnProperty.call(balances, id)) {
-                    if (exp.splitMode === 'percentage') {
-                        // amt is a percentage value (0-100)
-                        balances[id] -= (exp.amount * amt / 100);
-                    } else {
-                        // amt is a literal currency value
-                        balances[id] -= amt;
-                    }
+                    balances[id] -= amt;
+                }
+            });
+        } else if (exp.splitMode === 'percentage') {
+            // splits[id] holds a percentage value (0–100)
+            Object.entries(exp.splits).forEach(([id, pct]) => {
+                if (Object.prototype.hasOwnProperty.call(balances, id)) {
+                    balances[id] -= (exp.amount * pct / 100);
                 }
             });
         } else {
