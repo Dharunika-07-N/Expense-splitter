@@ -12,6 +12,7 @@ import SettleUpWizard from '../settlements/SettleUpWizard';
 import GroupAnalytics from '../analytics/GroupAnalytics';
 import CSVImporter from '../expenses/CSVImporter';
 import Papa from 'papaparse';
+import { createExpense } from '../../../utils/storage';
 
 export default function GroupDetail({ groupId, onBack }) {
     const { groups, expenses, friends, addExpense, addFriend, addSettlement, deleteExpense, settlements, updateGroup } = useApp();
@@ -424,7 +425,7 @@ export default function GroupDetail({ groupId, onBack }) {
                             <ExpenseWizard
                                 friends={groupMembers}
                                 onComplete={(data) => {
-                                    addExpense({ ...data, groupId });
+                                    addExpense(createExpense({ ...data, groupId }));
                                     setIsAddingExpense(false);
                                 }}
                                 onAddFriend={onBack}
